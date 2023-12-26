@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, io::stdin};
 
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 fn main() {
     let secret_number = thread_rng().gen_range(1..=100);
@@ -24,7 +24,7 @@ fn main() {
                 Ordering::Equal => break,
                 Ordering::Greater => println!("Too big!"),
             },
-            Err(_) => continue
+            Err(_) => continue,
         };
     }
 
