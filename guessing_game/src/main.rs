@@ -19,10 +19,7 @@ fn main() {
         match input.trim().parse::<u8>() {
             Ok(val) => match val.cmp(&secret_number) {
                 std::cmp::Ordering::Less => println!("Too small!"),
-                std::cmp::Ordering::Equal => {
-                    println!("You won!");
-                    break;
-                }
+                std::cmp::Ordering::Equal => break,
                 std::cmp::Ordering::Greater => println!("Too big!"),
             },
             Err(_) => continue
