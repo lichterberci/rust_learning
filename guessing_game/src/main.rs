@@ -1,7 +1,9 @@
-use rand::Rng;
+use std::{cmp::Ordering, io::stdin};
+
+use rand::{Rng, thread_rng};
 
 fn main() {
-    let secret_number = rand::thread_rng().gen_range(1..=100);
+    let secret_number = thread_rng().gen_range(1..=100);
 
     let mut num_guesses = 0;
 
@@ -10,7 +12,7 @@ fn main() {
 
         let mut input = String::new();
 
-        std::io::stdin()
+        stdin()
             .read_line(&mut input)
             .expect("Input should be valid!");
 
@@ -18,9 +20,9 @@ fn main() {
 
         match input.trim().parse::<u8>() {
             Ok(val) => match val.cmp(&secret_number) {
-                std::cmp::Ordering::Less => println!("Too small!"),
-                std::cmp::Ordering::Equal => break,
-                std::cmp::Ordering::Greater => println!("Too big!"),
+                Ordering::Less => println!("Too small!"),
+                Ordering::Equal => break,
+                Ordering::Greater => println!("Too big!"),
             },
             Err(_) => continue
         };
