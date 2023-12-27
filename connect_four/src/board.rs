@@ -53,8 +53,8 @@ impl Board {
     }
 
     pub fn get_state(&self) -> GameState {
+        
         // checking the rows
-
         for row in 0..self.height {
             let mut last_cell: Option<PlayerColor> = None;
             let mut current_streak = 0;
@@ -93,6 +93,7 @@ impl Board {
             }
         }
 
+        // checking columns
         for col in 0..self.width {
             let mut last_cell: Option<PlayerColor> = None;
             let mut current_streak = 0;
@@ -131,6 +132,7 @@ impl Board {
             }
         }
 
+        // checking diagonals
         for col_of_diagonal_start in -(self.width as i64)..self.width as i64 {
             let mut last_cell: Option<PlayerColor> = None;
             let mut current_streak = 0;
@@ -225,14 +227,21 @@ impl Board {
             }
         }
 
-        GameState::Draw
+        
+        if self.data.iter().all(|cell| cell.is_some()) {
+            GameState::Draw
+        } else {
+            GameState::Ongoing
+        }
     }
 
     pub fn draw_to_console(&self) {
-    
-        for row in (0..self.height).rev() {
+        let row_outline = (0..=self.width).map(|_| "+").collect::<Vec<_>>().join("-");
 
-            let mut displayed_row = String::new();
+        println!("{}", row_outline);
+
+        for row in (0..self.height).rev() {
+            let mut displayed_row = String::from("|");
 
             for col in 0..self.width {
                 displayed_row += match self.get_at_pos(col, row) {
@@ -241,11 +250,12 @@ impl Board {
                         PlayerColor::Yellow => "O",
                     },
                     None => " ",
-                }
+                };
+                displayed_row += "|";
             }
 
             println!("{}", displayed_row);
+            println!("{}", row_outline);
         }
-
     }
 }
