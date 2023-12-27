@@ -80,7 +80,7 @@ impl Board {
                 match last_cell {
                     Some(ref last_color) if *last_color == current_color => {
                         current_streak += 1;
-                        
+
                         if current_streak >= WINNING_STREAK_LENGTH {
                             return GameState::Win(current_color);
                         }
@@ -118,7 +118,7 @@ impl Board {
                 match last_cell {
                     Some(ref last_color) if *last_color == current_color => {
                         current_streak += 1;
-                        
+
                         if current_streak >= WINNING_STREAK_LENGTH {
                             return GameState::Win(current_color);
                         }
@@ -135,11 +135,21 @@ impl Board {
             }
         }
 
-        for row in 0..self.height {
+        for col_of_diagonal_start in -(self.width as i64)..self.width as i64 {
             let mut last_cell: Option<PlayerColor> = None;
             let mut current_streak = 0;
 
-            for col in 0..self.width {
+            // diagonals from the bottom left to the top right
+
+            for index_from_the_bottom in 0..self.width {
+                let col = col_of_diagonal_start + index_from_the_bottom as i64;
+                let row = index_from_the_bottom as i64;
+
+                if col < 0 || col >= self.width as i64 || row < 0 || row >= self.height as i64 {
+                    last_cell = None;
+                    current_streak = 0;
+                }
+
                 let current_cell = self.get_at_pos(col, row);
 
                 if current_cell.is_none() {
@@ -156,7 +166,53 @@ impl Board {
                 match last_cell {
                     Some(ref last_color) if *last_color == current_color => {
                         current_streak += 1;
-                        
+
+                        if current_streak >= WINNING_STREAK_LENGTH {
+                            return GameState::Win(current_color);
+                        }
+                    }
+                    _ => {
+                        current_streak = 1;
+                    }
+                }
+
+                last_cell = match current_cell {
+                    Some(color) => Some(color.clone()),
+                    None => None,
+                };
+            }
+        
+            // diagonals from the bottom right to the top left
+
+            last_cell = None;
+            current_streak = 0;
+
+            for index_from_the_bottom in 0..self.width {
+                let col = col_of_diagonal_start - index_from_the_bottom as i64;
+                let row = index_from_the_bottom as i64;
+
+                if col < 0 || col >= self.width as i64 || row < 0 || row >= self.height as i64 {
+                    last_cell = None;
+                    current_streak = 0;
+                }
+
+                let current_cell = self.get_at_pos(col, row);
+
+                if current_cell.is_none() {
+                    current_streak += 1;
+                    last_cell = match current_cell {
+                        Some(color) => Some(color.clone()),
+                        None => None,
+                    };
+                    continue;
+                }
+
+                let current_color = current_cell.clone().unwrap();
+
+                match last_cell {
+                    Some(ref last_color) if *last_color == current_color => {
+                        current_streak += 1;
+
                         if current_streak >= WINNING_STREAK_LENGTH {
                             return GameState::Win(current_color);
                         }
@@ -172,7 +228,6 @@ impl Board {
                 };
             }
         }
-
 
         GameState::Draw
     }
