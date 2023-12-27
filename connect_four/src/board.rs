@@ -18,14 +18,10 @@ pub struct Board {
 
 impl Board {
     pub fn new(width: usize, height: usize) -> Board {
-        let mut data = Vec::<Option<PlayerColor>>::new();
-
-        data.reserve_exact(width * height);
-
         Board {
             width,
             height,
-            data,
+            data: vec![None; width * height],
         }
     }
 
@@ -150,7 +146,7 @@ impl Board {
                     current_streak = 0;
                 }
 
-                let current_cell = self.get_at_pos(col, row);
+                let current_cell = self.get_at_pos(col as usize, row as usize);
 
                 if current_cell.is_none() {
                     current_streak += 1;
@@ -196,7 +192,7 @@ impl Board {
                     current_streak = 0;
                 }
 
-                let current_cell = self.get_at_pos(col, row);
+                let current_cell = self.get_at_pos(col as usize, row as usize);
 
                 if current_cell.is_none() {
                     current_streak += 1;
