@@ -5,7 +5,6 @@ pub use game_state::GameState;
 pub use player_color::PlayerColor;
 
 const WINNING_STREAK_LENGTH: i32 = 4;
-
 /// Represents a board with the coins tossed into it.
 ///
 /// The data is indexed so that the 0 column is the leftmost one
@@ -146,6 +145,7 @@ impl Board {
                 if col < 0 || col >= self.width as i64 || row < 0 || row >= self.height as i64 {
                     last_cell = None;
                     current_streak = 0;
+                    continue;
                 }
 
                 let current_cell = self.get_at_pos(col as usize, row as usize);
@@ -192,6 +192,7 @@ impl Board {
                 if col < 0 || col >= self.width as i64 || row < 0 || row >= self.height as i64 {
                     last_cell = None;
                     current_streak = 0;
+                    continue;
                 }
 
                 let current_cell = self.get_at_pos(col as usize, row as usize);
