@@ -181,7 +181,7 @@ impl Board {
                     None => None,
                 };
             }
-        
+
             // diagonals from the bottom right to the top left
 
             last_cell = None;
@@ -230,5 +230,26 @@ impl Board {
         }
 
         GameState::Draw
+    }
+
+    pub fn draw_to_console(&self) {
+    
+        for row in (0..self.height).rev() {
+
+            let mut displayed_row = String::new();
+
+            for col in 0..self.width {
+                displayed_row += match self.get_at_pos(col, row) {
+                    Some(col) => match col {
+                        PlayerColor::Red => "#",
+                        PlayerColor::Yellow => "O",
+                    },
+                    None => " ",
+                }
+            }
+
+            println!("{}", displayed_row);
+        }
+
     }
 }
