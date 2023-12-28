@@ -2,10 +2,17 @@ mod engine;
 
 use connect_four::board::{Board, GameState, PlayerColor};
 
-pub fn start_game(board_width: usize, board_height: usize) {
+use self::engine::Engine;
+
+pub fn start_game(board_width: usize, board_height: usize, engine: &Engine) {
     let mut board = Board::new(board_width, board_height);
 
     let player_color = select_player_color();
+    let engine_color = if player_color == PlayerColor::Red {
+        PlayerColor::Yellow
+    } else {
+        PlayerColor::Red
+    };
 
     let mut active_color = PlayerColor::Red;
 
@@ -48,7 +55,7 @@ pub fn start_game(board_width: usize, board_height: usize) {
                 break;
             }
         } else {
-
+            engine.play_move(&board, engine_color);
         }
 
         active_color = if active_color == PlayerColor::Red {

@@ -277,4 +277,12 @@ impl Board {
     pub fn get_available_columns(&self) -> Vec<usize> {
         (0..self.width).filter(|c| self.can_play_move(*c)).collect()
     }
+
+    pub fn copy(&self) -> Board {
+        Board {
+            width: self.width,
+            height: self.height,
+            data: self.data.iter().copied().collect::<Vec<Option<PlayerColor>>>()
+        }
+    }
 }
