@@ -3,16 +3,18 @@ use connect_four::board::{Board, GameState, PlayerColor};
 pub fn start_game(board_width: usize, board_height: usize) {
     let mut board = Board::new(board_width, board_height);
 
-    let mut player_color = PlayerColor::Red;
+    let mut active_color = PlayerColor::Red;
 
     while board.get_state() == GameState::Ongoing {
 
-        println!("It is {:?}'s turn!", player_color);
-
         board.draw_to_console();
+        
+        println!("It is {:?}'s turn!", active_color);
 
         loop {
             let mut input = String::new();
+
+            println!("Please enter the column you want to drop your coin (positive integer): ");
 
             std::io::stdin()
                 .read_line(&mut input)
@@ -37,12 +39,12 @@ pub fn start_game(board_width: usize, board_height: usize) {
                 continue;
             }
 
-            board.play_move(input, player_color.clone());
+            board.play_move(input, active_color.clone());
 
             break;
         }
 
-        player_color = if player_color == PlayerColor::Red {
+        active_color = if active_color == PlayerColor::Red {
             PlayerColor::Yellow
         } else {
             PlayerColor::Red

@@ -1,7 +1,7 @@
-mod pvp_game;
+mod pve_game;
 
 fn main() {
     
-    pvp_game::start_game(5, 6);
+    pve_game::start_game(5, 6);
 
 }

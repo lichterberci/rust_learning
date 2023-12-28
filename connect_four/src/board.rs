@@ -1,6 +1,8 @@
 mod game_state;
 mod player_color;
 
+use nu_ansi_term;
+
 pub use game_state::GameState;
 pub use player_color::PlayerColor;
 
@@ -36,7 +38,7 @@ impl Board {
         self.get_at_pos(column, self.height - 1).is_none()
     }
 
-    pub fn play_move(&mut self, column: usize, player_color: PlayerColor) -> bool {
+    pub fn make_move(&mut self, column: usize, player_color: PlayerColor) -> bool {
         if !self.can_play_move(column) {
             return false;
         }
@@ -51,8 +53,18 @@ impl Board {
         true
     }
 
+    pub fn unmake_move(&mut self, column: usize) {
+
+        for i in (0..self.height).rev() {
+            if self.get_at_pos(column, i).is_some() {
+                self.set_at_pos(column, i, None);
+                break;
+            }
+        }
+
+    }
+
     pub fn get_state(&self) -> GameState {
-        
         // checking the rows
         for row in 0..self.height {
             let mut last_cell: Option<PlayerColor> = None;
@@ -228,7 +240,6 @@ impl Board {
             }
         }
 
-        
         if self.data.iter().all(|cell| cell.is_some()) {
             GameState::Draw
         } else {
@@ -245,18 +256,25 @@ impl Board {
             let mut displayed_row = String::from("|");
 
             for col in 0..self.width {
-                displayed_row += match self.get_at_pos(col, row) {
-                    Some(col) => match col {
-                        PlayerColor::Red => "#",
-                        PlayerColor::Yellow => "O",
+                let red_coin = &format!("{}", nu_ansi_term::Color::Red.paint("O"));
+                let yellow_coin = format!("{}", nu_ansi_term::Color::Yellow.paint("O"));
+
+                displayed_row.push_str(match self.get_at_pos(col, row) {
+                    Some(color) => match color {
+                        PlayerColor::Red => &red_coin,
+                        PlayerColor::Yellow => &yellow_coin,
                     },
                     None => " ",
-                };
+                });
                 displayed_row += "|";
             }
 
             println!("{}", displayed_row);
             println!("{}", row_outline);
         }
+    }
+
+    pub fn get_available_columns(&self) -> Vec<usize> {
+        (0..self.width).filter(|c| self.can_play_move(*c)).collect()
     }
 }
