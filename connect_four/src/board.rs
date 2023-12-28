@@ -43,7 +43,7 @@ impl Board {
 
         for i in 0..self.height {
             if self.get_at_pos(column, i).is_none() {
-                self.set_at_pos(column, i, &Some(player_color));
+                self.set_at_pos(column, i, Some(player_color));
                 break;
             }
         }
@@ -132,7 +132,7 @@ impl Board {
         }
 
         // checking diagonals
-        for col_of_diagonal_start in -(self.width as i64)..self.width as i64 {
+        for col_of_diagonal_start in -(self.width as i64)..(self.width * 2) as i64 {
             let mut last_cell: Option<PlayerColor> = None;
             let mut current_streak = 0;
 

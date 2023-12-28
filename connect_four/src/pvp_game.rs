@@ -6,6 +6,11 @@ pub fn start_game(board_width: usize, board_height: usize) {
     let mut player_color = PlayerColor::Red;
 
     while board.get_state() == GameState::Ongoing {
+
+        println!("It is {:?}'s turn!", player_color);
+
+        board.draw_to_console();
+
         loop {
             let mut input = String::new();
 
@@ -42,5 +47,13 @@ pub fn start_game(board_width: usize, board_height: usize) {
         } else {
             PlayerColor::Red
         };
+    }
+
+    board.draw_to_console();
+
+    if board.get_state() == GameState::Draw {
+        println!("The game ended in a draw!");
+    } else if let GameState::Win(color) = board.get_state() {
+        println!("{:?} color won!", color);
     }
 }
