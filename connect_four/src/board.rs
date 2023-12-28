@@ -1,6 +1,8 @@
 mod game_state;
 mod player_color;
 
+use std::fmt::Display;
+
 use nu_ansi_term;
 
 pub use game_state::GameState;
@@ -16,6 +18,14 @@ pub struct Board {
     height: usize,
     data: Vec<Option<PlayerColor>>,
 }
+
+impl Display for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let data_as_string = self.get_display_string();
+        write!(f, "{}", data_as_string)
+    }
+}
+
 
 impl Board {
     pub fn new(width: usize, height: usize) -> Board {
@@ -54,14 +64,12 @@ impl Board {
     }
 
     pub fn unmake_move(&mut self, column: usize) {
-
         for i in (0..self.height).rev() {
             if self.get_at_pos(column, i).is_some() {
                 self.set_at_pos(column, i, None);
                 break;
             }
         }
-
     }
 
     pub fn get_state(&self) -> GameState {
@@ -248,30 +256,7 @@ impl Board {
     }
 
     pub fn draw_to_console(&self) {
-        let row_outline = (0..=self.width).map(|_| "+").collect::<Vec<_>>().join("-");
-
-        println!("{}", row_outline);
-
-        for row in (0..self.height).rev() {
-            let mut displayed_row = String::from("|");
-
-            for col in 0..self.width {
-                let red_coin = &format!("{}", nu_ansi_term::Color::Red.paint("O"));
-                let yellow_coin = format!("{}", nu_ansi_term::Color::Yellow.paint("O"));
-
-                displayed_row.push_str(match self.get_at_pos(col, row) {
-                    Some(color) => match color {
-                        PlayerColor::Red => &red_coin,
-                        PlayerColor::Yellow => &yellow_coin,
-                    },
-                    None => " ",
-                });
-                displayed_row += "|";
-            }
-
-            println!("{}", displayed_row);
-            println!("{}", row_outline);
-        }
+        println!("{}", self.get_display_string());
     }
 
     pub fn get_available_columns(&self) -> Vec<usize> {
@@ -282,7 +267,227 @@ impl Board {
         Board {
             width: self.width,
             height: self.height,
-            data: self.data.iter().copied().collect::<Vec<Option<PlayerColor>>>()
+            data: self
+                .data
+                .iter()
+                .copied()
+                .collect::<Vec<Option<PlayerColor>>>(),
         }
+    }
+
+    pub fn get_display_string(&self) -> String {
+        let mut result = String::new();
+    
+        let row_outline = (0..=self.width).map(|_| "+").collect::<Vec<_>>().join("-");
+    
+        result.push_str(&row_outline);
+        result.push('\n');
+    
+        for row in (0..self.height).rev() {
+            let mut displayed_row = String::from("|");
+    
+            for col in 0..self.width {
+                let red_coin = &format!("{}", nu_ansi_term::Color::Red.paint("O"));
+                let yellow_coin = format!("{}", nu_ansi_term::Color::Yellow.paint("O"));
+    
+                displayed_row.push_str(match self.get_at_pos(col, row) {
+                    Some(color) => match color {
+                        PlayerColor::Red => &red_coin,
+                        PlayerColor::Yellow => &yellow_coin,
+                    },
+                    None => " ",
+                });
+                displayed_row += "|";
+            }
+    
+            result.push_str(&displayed_row);
+            result.push('\n');
+            result.push_str(&row_outline);
+            result.push('\n');
+        }
+    
+        result
+    }
+
+    pub fn get_longest_streak_for_color(&self, color: &PlayerColor) -> usize {
+
+        let mut result = 0;
+
+        // checking the rows
+        for row in 0..self.height {
+            let mut last_cell: Option<PlayerColor> = None;
+            let mut current_streak = 0;
+
+            for col in 0..self.width {
+                let current_cell = self.get_at_pos(col, row);
+
+                if current_cell.is_none() {
+                    current_streak += 1;
+                    last_cell = match current_cell {
+                        Some(color) => Some(color.clone()),
+                        None => None,
+                    };
+                    continue;
+                }
+
+                let current_color = current_cell.clone().unwrap();
+
+                match last_cell {
+                    Some(ref last_color) if *last_color == current_color => {
+                        current_streak += 1;
+
+                        if current_streak >= result && current_color == *color {
+                            result = current_streak;
+                        }
+                    }
+                    _ => {
+                        current_streak = 1;
+                    }
+                }
+
+                last_cell = match current_cell {
+                    Some(color) => Some(color.clone()),
+                    None => None,
+                };
+            }
+        }
+
+        // checking columns
+        for col in 0..self.width {
+            let mut last_cell: Option<PlayerColor> = None;
+            let mut current_streak = 0;
+
+            for row in 0..self.height {
+                let current_cell = self.get_at_pos(col, row);
+
+                if current_cell.is_none() {
+                    current_streak += 1;
+                    last_cell = match current_cell {
+                        Some(color) => Some(color.clone()),
+                        None => None,
+                    };
+                    continue;
+                }
+
+                let current_color = current_cell.clone().unwrap();
+
+                match last_cell {
+                    Some(ref last_color) if *last_color == current_color => {
+                        current_streak += 1;
+
+                        if current_streak >= result && current_color == *color {
+                            result = current_streak;
+                        }
+                    }
+                    _ => {
+                        current_streak = 1;
+                    }
+                }
+
+                last_cell = match current_cell {
+                    Some(color) => Some(color.clone()),
+                    None => None,
+                };
+            }
+        }
+
+        // checking diagonals
+        for col_of_diagonal_start in -(self.width as i64)..(self.width * 2) as i64 {
+            let mut last_cell: Option<PlayerColor> = None;
+            let mut current_streak = 0;
+
+            // diagonals from the bottom left to the top right
+
+            for index_from_the_bottom in 0..self.width {
+                let col = col_of_diagonal_start + index_from_the_bottom as i64;
+                let row = index_from_the_bottom as i64;
+
+                if col < 0 || col >= self.width as i64 || row < 0 || row >= self.height as i64 {
+                    last_cell = None;
+                    current_streak = 0;
+                    continue;
+                }
+
+                let current_cell = self.get_at_pos(col as usize, row as usize);
+
+                if current_cell.is_none() {
+                    current_streak += 1;
+                    last_cell = match current_cell {
+                        Some(color) => Some(color.clone()),
+                        None => None,
+                    };
+                    continue;
+                }
+
+                let current_color = current_cell.clone().unwrap();
+
+                match last_cell {
+                    Some(ref last_color) if *last_color == current_color => {
+                        current_streak += 1;
+
+                        if current_streak >= result && current_color == *color {
+                            result = current_streak;
+                        }
+                    }
+                    _ => {
+                        current_streak = 1;
+                    }
+                }
+
+                last_cell = match current_cell {
+                    Some(color) => Some(color.clone()),
+                    None => None,
+                };
+            }
+
+            // diagonals from the bottom right to the top left
+
+            last_cell = None;
+            current_streak = 0;
+
+            for index_from_the_bottom in 0..self.width {
+                let col = col_of_diagonal_start - index_from_the_bottom as i64;
+                let row = index_from_the_bottom as i64;
+
+                if col < 0 || col >= self.width as i64 || row < 0 || row >= self.height as i64 {
+                    last_cell = None;
+                    current_streak = 0;
+                    continue;
+                }
+
+                let current_cell = self.get_at_pos(col as usize, row as usize);
+
+                if current_cell.is_none() {
+                    current_streak += 1;
+                    last_cell = match current_cell {
+                        Some(color) => Some(color.clone()),
+                        None => None,
+                    };
+                    continue;
+                }
+
+                let current_color = current_cell.clone().unwrap();
+
+                match last_cell {
+                    Some(ref last_color) if *last_color == current_color => {
+                        current_streak += 1;
+
+                        if current_streak >= result && current_color == *color {
+                            result = current_streak;
+                        }
+                    }
+                    _ => {
+                        current_streak = 1;
+                    }
+                }
+
+                last_cell = match current_cell {
+                    Some(color) => Some(color.clone()),
+                    None => None,
+                };
+            }
+        }
+
+        result
     }
 }

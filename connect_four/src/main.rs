@@ -4,8 +4,10 @@ use pve_game::engine::Engine;
 
 fn main() {
     
-    let engine = Engine::new();
+    let engine = Engine {
+        max_depth: 13,
+    };
 
-    pve_game::start_game(5, 6, &engine);
+    pve_game::start_game(5, 5, &engine);
 
 }
