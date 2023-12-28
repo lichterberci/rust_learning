@@ -55,6 +55,8 @@ pub fn start_game(board_width: usize, board_height: usize, engine: &mut Engine) 
                 break;
             }
         } else {
+            engine.max_depth += 1;
+
             let best_move = engine.get_best_move(&board, engine_color);
 
             match best_move {
