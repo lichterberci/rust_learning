@@ -43,7 +43,7 @@ impl Board {
 
         for i in 0..self.height {
             if self.get_at_pos(column, i).is_none() {
-                self.set_at_pos(column, i, Some(player_color));
+                self.set_at_pos(column, i, &Some(player_color));
                 break;
             }
         }
