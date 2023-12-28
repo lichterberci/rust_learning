@@ -12,7 +12,7 @@ impl Engine {
     /// # Errors
     /// 
     /// This function will return an error if there are no legal moves.
-    pub fn play_move(&self, board: &Board, color: PlayerColor) -> Result<usize, String> {
+    pub fn get_best_move(&self, board: &Board, color: PlayerColor) -> Result<usize, String> {
         if board.get_state() != GameState::Ongoing {
             return Err(String::from("Board is in a terminal state!"));
         }
@@ -22,7 +22,7 @@ impl Engine {
         let mut best_value = i32::MIN;
         let mut best_column = 0;
 
-        let mut alpha = i32::MIN;
+        let mut alpha = i32::MIN + 1;
         let beta = i32::MAX;
 
         let other_color = if color == PlayerColor::Red {
@@ -36,7 +36,7 @@ impl Engine {
             let value = -negamax(&mut board, -beta, -alpha, other_color.clone());
             board.unmake_move(column);
 
-            if best_value < value {
+            if value > best_value {
                 best_value = value;
                 best_column = column;
             };
@@ -61,7 +61,7 @@ fn negamax(board: &mut Board, beta: i32, alpha: i32, color: PlayerColor) -> i32 
                 if win_color == PlayerColor::Red {
                     i32::MAX
                 } else {
-                    i32::MIN
+                    i32::MIN + 1
                 }
             }
             GameState::Ongoing => 0,

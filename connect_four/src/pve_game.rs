@@ -1,4 +1,4 @@
-mod engine;
+pub(crate) mod engine;
 
 use connect_four::board::{Board, GameState, PlayerColor};
 
@@ -55,7 +55,16 @@ pub fn start_game(board_width: usize, board_height: usize, engine: &Engine) {
                 break;
             }
         } else {
-            engine.play_move(&board, engine_color);
+            let best_move = engine.get_best_move(&board, engine_color);
+
+            match best_move {
+                Ok(column_to_play) => {
+                    board.make_move(column_to_play, engine_color);
+                }
+                Err(_) => {
+                    panic!("Engine tried to make move in an invalid state!");
+                }
+            }
         }
 
         active_color = if active_color == PlayerColor::Red {
