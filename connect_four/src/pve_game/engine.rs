@@ -165,23 +165,23 @@ impl Engine {
         result -= 100 * longest_yellow_streak;
 
         let column_scores = (0..board.width)
-            .map(|c| -c.abs_diff(board.width / 2))
-            .collect::<Vec<_>>();
+            .map(|c| -(c.abs_diff(board.width / 2) as i32))
+            .collect::<Vec<i32>>();
 
-        let red_column_penalties = (0..board.width * board.heigth)
+        let red_column_penalties: i32 = (0..board.width * board.height)
             .filter(|index| {
                 board
-                    .get_at_index(index)
+                    .get_at_index(*index)
                     .is_some_and(|cell| cell.is_some_and(|color| color == PlayerColor::Red))
             })
             .map(|index| board.index_to_column(index))
             .map(|column| column_scores[column])
             .sum();
 
-        let yellow_column_penalties = (0..board.width * board.heigth)
+        let yellow_column_penalties: i32 = (0..board.width * board.height)
             .filter(|index| {
                 board
-                    .get_at_index(index)
+                    .get_at_index(*index)
                     .is_some_and(|cell| cell.is_some_and(|color| color == PlayerColor::Yellow))
             })
             .map(|index| board.index_to_column(index))

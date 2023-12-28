@@ -28,7 +28,6 @@ impl Display for Board {
     }
 }
 
-
 impl Board {
     pub fn new(width: usize, height: usize) -> Board {
         Board {
@@ -279,19 +278,19 @@ impl Board {
 
     pub fn get_display_string(&self) -> String {
         let mut result = String::new();
-    
+
         let row_outline = (0..=self.width).map(|_| "+").collect::<Vec<_>>().join("-");
-    
+
         result.push_str(&row_outline);
         result.push('\n');
-    
+
         for row in (0..self.height).rev() {
             let mut displayed_row = String::from("|");
-    
+
             for col in 0..self.width {
                 let red_coin = &format!("{}", nu_ansi_term::Color::Red.paint("O"));
                 let yellow_coin = format!("{}", nu_ansi_term::Color::Yellow.paint("O"));
-    
+
                 displayed_row.push_str(match self.get_at_pos(col, row) {
                     Some(color) => match color {
                         PlayerColor::Red => &red_coin,
@@ -301,18 +300,17 @@ impl Board {
                 });
                 displayed_row += "|";
             }
-    
+
             result.push_str(&displayed_row);
             result.push('\n');
             result.push_str(&row_outline);
             result.push('\n');
         }
-    
+
         result
     }
 
     pub fn get_longest_streak_for_color(&self, color: &PlayerColor) -> usize {
-
         let mut result = 0;
 
         // checking the rows
@@ -501,8 +499,7 @@ impl Board {
         return Some(self.data[index]);
     }
 
-    pub fn index_to_column(&self, index: i32) -> usize {
+    pub fn index_to_column(&self, index: usize) -> usize {
         index % self.width
     }
-
 }
