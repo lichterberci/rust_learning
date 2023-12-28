@@ -4,7 +4,7 @@ use connect_four::board::{Board, GameState, PlayerColor};
 
 use self::engine::Engine;
 
-pub fn start_game(board_width: usize, board_height: usize, engine: &Engine) {
+pub fn start_game(board_width: usize, board_height: usize, engine: &mut Engine) {
     let mut board = Board::new(board_width, board_height);
 
     let player_color = select_player_color();

@@ -1,4 +1,10 @@
+mod zobrist_hash;
+
+use std::{collections::HashMap, ops::Sub};
+
 use connect_four::board::{Board, GameState, PlayerColor};
+
+use self::zobrist_hash::{HashType, ZobristHash};
 
 const RED_WIN_EVAL: i32 = 100;
 const YELLOW_WIN_EVAL: i32 = -100;
@@ -7,11 +13,17 @@ const YELLOW_WIN_EVAL: i32 = -100;
 /// A minimax engine that can play the best moves in any situation.
 pub struct Engine {
     pub max_depth: usize,
+    hash_generator: ZobristHash,
+    transposition_table: HashMap<HashType, i32>,
 }
 
 impl Engine {
-    pub fn new() -> Self {
-        Self { max_depth: 15 }
+    pub fn new(board_width: usize, board_height: usize, max_depth: usize) -> Self {
+        Self {
+            max_depth,
+            hash_generator: ZobristHash::new(board_width, board_height),
+            transposition_table: HashMap::new(),
+        }
     }
 
     /// Plays an engine move.
@@ -19,10 +31,12 @@ impl Engine {
     /// # Errors
     ///
     /// This function will return an error if there are no legal moves.
-    pub fn get_best_move(&self, board: &Board, color: PlayerColor) -> Result<usize, String> {
+    pub fn get_best_move(&mut self, board: &Board, color: PlayerColor) -> Result<usize, String> {
         if board.get_state() != GameState::Ongoing {
             return Err(String::from("Board is in a terminal state!"));
         }
+
+        self.transposition_table.clear();
 
         let mut board: Board = board.copy();
 
@@ -64,12 +78,14 @@ impl Engine {
             }
         }
 
+        self.transposition_table.clear();
+
         Ok(best_column)
     }
 
     /// Implements the negamax algorithm for determining the best move
     fn minimax(
-        &self,
+        &mut self,
         board: &mut Board,
         alpha: i32,
         beta: i32,
@@ -92,6 +108,12 @@ impl Engine {
                 }
                 GameState::Draw | GameState::Ongoing => 0,
             };
+        }
+
+        let position_hash = self.hash_generator.calculate_hash(board);
+
+        if self.transposition_table.contains_key(&position_hash) {
+            return self.transposition_table[&position_hash];
         }
 
         if depth >= self.max_depth {
@@ -128,11 +150,47 @@ impl Engine {
             }
         }
 
+        self.transposition_table.insert(position_hash, best_value);
+
         best_value
     }
 
     fn static_eval(&self, board: &Board) -> i32 {
-        board.get_longest_streak_for_color(&PlayerColor::Red) as i32
-            - board.get_longest_streak_for_color(&PlayerColor::Yellow) as i32
+        let mut result = 0;
+
+        let longest_red_streak = board.get_longest_streak_for_color(&PlayerColor::Red) as i32;
+        let longest_yellow_streak = board.get_longest_streak_for_color(&PlayerColor::Yellow) as i32;
+
+        result += 100 * longest_red_streak;
+        result -= 100 * longest_yellow_streak;
+
+        let column_scores = (0..board.width)
+            .map(|c| -c.abs_diff(board.width / 2))
+            .collect::<Vec<_>>();
+
+        let red_column_penalties = (0..board.width * board.heigth)
+            .filter(|index| {
+                board
+                    .get_at_index(index)
+                    .is_some_and(|cell| cell.is_some_and(|color| color == PlayerColor::Red))
+            })
+            .map(|index| board.index_to_column(index))
+            .map(|column| column_scores[column])
+            .sum();
+
+        let yellow_column_penalties = (0..board.width * board.heigth)
+            .filter(|index| {
+                board
+                    .get_at_index(index)
+                    .is_some_and(|cell| cell.is_some_and(|color| color == PlayerColor::Yellow))
+            })
+            .map(|index| board.index_to_column(index))
+            .map(|column| column_scores[column])
+            .sum();
+
+        result += red_column_penalties;
+        result -= yellow_column_penalties;
+
+        result
     }
 }

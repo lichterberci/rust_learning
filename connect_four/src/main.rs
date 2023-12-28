@@ -4,10 +4,10 @@ use pve_game::engine::Engine;
 
 fn main() {
     
-    let engine = Engine {
-        max_depth: 13,
-    };
+    let board_dim = (5, 5);
 
-    pve_game::start_game(5, 5, &engine);
+    let mut engine = Engine::new(board_dim.0, board_dim.1, 20);
+
+    pve_game::start_game(board_dim.0, board_dim.1, &mut engine);
 
 }

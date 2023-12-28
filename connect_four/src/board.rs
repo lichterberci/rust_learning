@@ -8,15 +8,17 @@ use nu_ansi_term;
 pub use game_state::GameState;
 pub use player_color::PlayerColor;
 
+pub type CellType = Option<PlayerColor>;
+
 const WINNING_STREAK_LENGTH: i32 = 4;
 /// Represents a board with the coins tossed into it.
 ///
 /// The data is indexed so that the 0 column is the leftmost one
 /// and the 0 row is the bottom most one.
 pub struct Board {
-    width: usize,
-    height: usize,
-    data: Vec<Option<PlayerColor>>,
+    pub width: usize,
+    pub height: usize,
+    data: Vec<CellType>,
 }
 
 impl Display for Board {
@@ -36,11 +38,11 @@ impl Board {
         }
     }
 
-    fn get_at_pos(&self, column: usize, row: usize) -> &Option<PlayerColor> {
+    fn get_at_pos(&self, column: usize, row: usize) -> &CellType {
         &self.data[row * self.width + column]
     }
 
-    fn set_at_pos(&mut self, column: usize, row: usize, value: Option<PlayerColor>) {
+    fn set_at_pos(&mut self, column: usize, row: usize, value: CellType) {
         self.data[row * self.width + column] = value;
     }
 
@@ -75,7 +77,7 @@ impl Board {
     pub fn get_state(&self) -> GameState {
         // checking the rows
         for row in 0..self.height {
-            let mut last_cell: Option<PlayerColor> = None;
+            let mut last_cell: CellType = None;
             let mut current_streak = 0;
 
             for col in 0..self.width {
@@ -153,7 +155,7 @@ impl Board {
 
         // checking diagonals
         for col_of_diagonal_start in -(self.width as i64)..(self.width * 2) as i64 {
-            let mut last_cell: Option<PlayerColor> = None;
+            let mut last_cell: CellType = None;
             let mut current_streak = 0;
 
             // diagonals from the bottom left to the top right
@@ -490,4 +492,17 @@ impl Board {
 
         result
     }
+
+    pub fn get_at_index(&self, index: usize) -> Option<CellType> {
+        if index >= self.width * self.height {
+            return None;
+        }
+
+        return Some(self.data[index]);
+    }
+
+    pub fn index_to_column(&self, index: i32) -> usize {
+        index % self.width
+    }
+
 }
