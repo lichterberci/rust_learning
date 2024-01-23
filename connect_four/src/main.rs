@@ -4,7 +4,7 @@ use pve_game::engine::Engine;
 
 fn main() {
     
-    let board_dim = (7, 6);
+    let board_dim = (6, 5);
 
     let mut engine = Engine::new(board_dim.0, board_dim.1, 10);
 
