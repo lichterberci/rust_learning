@@ -168,6 +168,25 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
         r"^(true|false)[^\w]".into(),
         Option::Some(QuerySymbol::Value(Value::Boolean(false))),
     );
+    pattern_map.insert(r"^select[^\w]".into(), Option::Some(QuerySymbol::Select));
+    pattern_map.insert(r"^insert[^\w]".into(), Option::Some(QuerySymbol::Insert));
+    pattern_map.insert(r"^where[^\w]".into(), Option::Some(QuerySymbol::Where));
+    pattern_map.insert(r"^values[^\w]".into(), Option::Some(QuerySymbol::Values));
+    pattern_map.insert(r"^from[^\w]".into(), Option::Some(QuerySymbol::From));
+    pattern_map.insert(r"^into[^\w]".into(), Option::Some(QuerySymbol::Into));
+    pattern_map.insert(r"^delete[^\w]".into(), Option::Some(QuerySymbol::Delete));
+    pattern_map.insert(
+        r"^not[^\w]".into(),
+        Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::Not)),
+    );
+    pattern_map.insert(
+        r"^and[^\w]".into(),
+        Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::And)),
+    );
+    pattern_map.insert(
+        r"^or[^\w]".into(),
+        Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::Or)),
+    );
 
     let mut head_index = 0;
     let mut output = QuerySymbolStream::new();
