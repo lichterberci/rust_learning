@@ -97,8 +97,6 @@ pub struct QueryTokenizer {
 
 impl QueryTokenizer {
     pub fn new() -> Self {
-        let mut grammar = Vec::new();
-
         let mut grammar: Vec<(String, Option<QueryTokenType>)> = Vec::new();
 
         grammar.push((r"^(?<token>\s+)".into(), Option::None)); // whitespace

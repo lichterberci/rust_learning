@@ -17,7 +17,9 @@ where
 {
     pub fn build(
         grammar: &Vec<(String, Option<TokenType>)>,
-        matching_function: Box<dyn for<'b> Fn(&Match<'b>, &TokenType) -> Box<dyn Error>>,
+        matching_function: Box<
+            dyn for<'b> Fn(&Match<'b>, &TokenType) -> Result<Token, Box<dyn Error>>,
+        >,
         target_group_name: &'static str,
     ) -> Self {
         Self {

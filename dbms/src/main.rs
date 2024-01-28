@@ -1,9 +1,7 @@
-use dbms::query_tokenizer::lex_string;
-
 fn main() {
     let tokenizer = dbms::query_tokenizer::QueryTokenizer::new();
 
-    dbg!(tokenizer::lex_string(
+    dbg!(tokenizer.tokenize(
         r#"
 
         ;--SELECT * FROM table WHERE table.column < 12.3 or table.column2 == false;
