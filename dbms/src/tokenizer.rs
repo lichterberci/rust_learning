@@ -8,15 +8,17 @@ where
 {
     grammar: Vec<(Regex, Option<TokenType>)>,
     matching_function: &'a dyn for<'b> Fn(&Match<'b>, &TokenType) -> Token,
+    target_group_name: &'static str,
 }
 
 impl<'a, Token, TokenType> Tokenizer<'a, Token, TokenType>
 where
     TokenType: Copy,
 {
-    pub fn setup(
+    pub fn build(
         grammar: &Vec<(String, Option<TokenType>)>,
         matching_function: &'a dyn for<'b> Fn(&Match<'b>, &TokenType) -> Token,
+        target_group_name: &'static str,
     ) -> Self {
         Self {
             grammar: grammar
@@ -29,6 +31,7 @@ where
                 })
                 .collect(),
             matching_function,
+            target_group_name,
         }
     }
 
@@ -53,7 +56,7 @@ where
                 let captures = captures.expect("There should be a capture here!");
 
                 let captured_group_of_token = captures
-                    .name("token")
+                    .name(self.target_group_name)
                     .expect("There should be a capture here!");
 
                 // this is a separator or comment
