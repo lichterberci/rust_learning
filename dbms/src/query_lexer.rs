@@ -88,133 +88,133 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
     let input = input.to_lowercase();
     let input = input.trim().to_owned() + " "; // this space is crucial for the regex patterns to match
 
-    let mut pattern_map: Vec<(String, Option<QuerySymbol>)> = Vec::new();
+    let mut pattern_list: Vec<(String, Option<QuerySymbol>)> = Vec::new();
 
-    pattern_map.push((r"^(?<token>\s+)".into(), Option::None)); // whitespace
-    pattern_map.push((r"^(?<token>;\-\-[^\n]*)".into(), Option::None)); // line comment
-    pattern_map.push((
+    pattern_list.push((r"^(?<token>\s+)".into(), Option::None)); // whitespace
+    pattern_list.push((r"^(?<token>;\-\-[^\n]*)".into(), Option::None)); // line comment
+    pattern_list.push((
         r"^(?<token>\()".into(),
         Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>\))".into(),
         Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>\+)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Add)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>\-)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Sub)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>\*)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Mult)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>/)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Div)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>==)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::Equals,
         )),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>!=)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::NotEquals,
         )),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token><)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::Less,
         )),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token><=)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::LessEquals,
         )),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>>)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::Greater,
         )),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>>=)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::GreaterEquals,
         )),
     ));
-    pattern_map.push((r"^(?<token>,)".into(), Option::Some(QuerySymbol::Comma)));
-    pattern_map.push((
+    pattern_list.push((r"^(?<token>,)".into(), Option::Some(QuerySymbol::Comma)));
+    pattern_list.push((
         r"^(?<token>;)[^--]".into(),
         Option::Some(QuerySymbol::Semicolon),
     ));
-    pattern_map.push((
+    pattern_list.push((
         "^(?<token>\"[^(\"|\n)]*\")".into(),
         Option::Some(QuerySymbol::Value(Value::String("".into()))),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>\d+\.\d*)[^\d]".into(),
         Option::Some(QuerySymbol::Value(Value::Float(0.0))),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>\d+)[^\d]".into(),
         Option::Some(QuerySymbol::Value(Value::Integer(0))),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>true|false)[^\w]".into(),
         Option::Some(QuerySymbol::Value(Value::Boolean(false))),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>select)[^\w]".into(),
         Option::Some(QuerySymbol::Select),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>insert)[^\w]".into(),
         Option::Some(QuerySymbol::Insert),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>where)[^\w]".into(),
         Option::Some(QuerySymbol::Where),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>values)[^\w]".into(),
         Option::Some(QuerySymbol::Values),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>from)[^\w]".into(),
         Option::Some(QuerySymbol::From),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>into)[^\w]".into(),
         Option::Some(QuerySymbol::Into),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>delete)[^\w]".into(),
         Option::Some(QuerySymbol::Delete),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>not)[^\w]".into(),
         Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::Not)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>and)[^\w]".into(),
         Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::And)),
     ));
-    pattern_map.push((
+    pattern_list.push((
         r"^(?<token>or)[^\w]".into(),
         Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::Or)),
     ));
-    pattern_map.push((r"^(?<token>\.)".into(), Option::Some(QuerySymbol::Dot)));
-    pattern_map.push((
+    pattern_list.push((r"^(?<token>\.)".into(), Option::Some(QuerySymbol::Dot)));
+    pattern_list.push((
         r"^(?<token>[\w_]+)[^\w_]".into(),
         Option::Some(QuerySymbol::Identifier("".into())),
     ));
@@ -222,7 +222,7 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
     let mut head_index = 0;
     let mut output = QuerySymbolStream::new();
 
-    let parsed_pattern_map: Vec<(Regex, &Option<QuerySymbol>)> = pattern_map
+    let parsed_pattern_map: Vec<(Regex, &Option<QuerySymbol>)> = pattern_list
         .iter()
         .map(|(pattern, symbol_type)| {
             (
