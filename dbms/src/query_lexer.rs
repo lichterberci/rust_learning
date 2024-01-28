@@ -2,6 +2,7 @@ use std::{collections::HashMap, error::Error};
 
 use regex::Regex;
 
+#[derive(Debug)]
 pub struct QuerySymbolStream {
     symbols: Vec<QuerySymbol>,
 }
@@ -24,6 +25,7 @@ impl QuerySymbolStream {
     }
 }
 
+#[derive(Debug)]
 pub enum QuerySymbol {
     Select,
     Insert,
@@ -42,11 +44,13 @@ pub enum QuerySymbol {
     NumericalOperator(NumericalOperatorType),
 }
 
+#[derive(Debug)]
 pub enum ParenthesisType {
     Opening,
     Closing,
 }
 
+#[derive(Debug)]
 pub enum ComparisonOperatorType {
     Equals,
     NotEquals,
@@ -56,12 +60,14 @@ pub enum ComparisonOperatorType {
     LessEquals,
 }
 
+#[derive(Debug)]
 pub enum LogicalOperatorType {
     Not,
     Or,
     And,
 }
 
+#[derive(Debug)]
 pub enum NumericalOperatorType {
     Add,
     Sub,
@@ -69,6 +75,7 @@ pub enum NumericalOperatorType {
     Div,
 }
 
+#[derive(Debug)]
 pub enum Value {
     Boolean(bool),
     Integer(i64),
@@ -77,29 +84,30 @@ pub enum Value {
 }
 
 pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
-    let input = input.to_lowercase().trim();
+    let input = input.to_lowercase();
+    let input = input.trim();
 
     let mut pattern_map: HashMap<String, Option<QuerySymbol>> = HashMap::new();
     pattern_map.insert(r"^\s+".into(), Option::None); // whitespace
     pattern_map.insert(r"^;--[^\n]*".into(), Option::None); // line comment
     pattern_map.insert(
-        r"^(".into(),
+        r"^\(".into(),
         Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
     );
     pattern_map.insert(
-        r"^)".into(),
+        r"^\)".into(),
         Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
     );
     pattern_map.insert(
-        r"^+".into(),
+        r"^\+".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Add)),
     );
     pattern_map.insert(
-        r"^-".into(),
+        r"^\-".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Sub)),
     );
     pattern_map.insert(
-        r"^*".into(),
+        r"^\*".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Mult)),
     );
     pattern_map.insert(
@@ -262,6 +270,12 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
             };
 
             head_index += first_capture.as_str().len();
+
+            println!(
+                "Extracted symbol: \"{}\" {:?}",
+                &first_capture.as_str(),
+                &extracted_symbol
+            );
 
             output.append(extracted_symbol);
 

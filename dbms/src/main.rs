@@ -1,3 +1,3 @@
 fn main() {
-    println!("Hello, world!");
+    dbg!(dbms::query_lexer::lex_string("(+-);--())(\n(**"));
 }
