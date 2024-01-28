@@ -247,8 +247,6 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
                 continue 'token_loop;
             }
 
-            println!("first capture: {:?}", captured_group_of_token);
-
             let extracted_symbol = match inferred_type {
                 Some(inferred_type) => match inferred_type {
                     QuerySymbol::Select => QuerySymbol::Select,
@@ -344,12 +342,6 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
             };
 
             head_index += captured_group_of_token.as_str().len();
-
-            println!(
-                "Extracted symbol: \"{}\" {:?}",
-                &captured_group_of_token.as_str(),
-                &extracted_symbol
-            );
 
             output.append(extracted_symbol);
 
