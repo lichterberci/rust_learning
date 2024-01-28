@@ -32,11 +32,14 @@ pub enum QuerySymbol {
     Into,
     Values,
     Where,
+    Comma,
+    Semicolon,
     Identifier(String),
     Value(Value),
     Parenthesis(ParenthesisType),
     LogicalOperator(LogicalOperatorType),
-    ComparisonOperatorType(ComparisonOperatorType),
+    ComparisonOperator(ComparisonOperatorType),
+    NumericalOperator(NumericalOperatorType),
 }
 
 pub enum ParenthesisType {
@@ -59,6 +62,13 @@ pub enum LogicalOperatorType {
     And,
 }
 
+pub enum NumericalOperatorType {
+    Add,
+    Sub,
+    Mult,
+    Div,
+}
+
 pub enum Value {
     Boolean(bool),
     Integer(i64),
@@ -70,7 +80,68 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
     let input = input.to_lowercase().trim();
 
     let mut pattern_map: HashMap<String, Option<QuerySymbol>> = HashMap::new();
-    pattern_map.insert(r"^\s+".into(), Option::None);
+    pattern_map.insert(r"^\s+".into(), Option::None); // whitespace
+    pattern_map.insert(r"^;--[^\n]*".into(), Option::None); // line comment
+    pattern_map.insert(
+        r"^(".into(),
+        Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
+    );
+    pattern_map.insert(
+        r"^)".into(),
+        Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
+    );
+    pattern_map.insert(
+        r"^+".into(),
+        Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Add)),
+    );
+    pattern_map.insert(
+        r"^-".into(),
+        Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Sub)),
+    );
+    pattern_map.insert(
+        r"^*".into(),
+        Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Mult)),
+    );
+    pattern_map.insert(
+        r"^/".into(),
+        Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Div)),
+    );
+    pattern_map.insert(
+        r"^==".into(),
+        Option::Some(QuerySymbol::ComparisonOperator(
+            ComparisonOperatorType::Equals,
+        )),
+    );
+    pattern_map.insert(
+        r"^!=".into(),
+        Option::Some(QuerySymbol::ComparisonOperator(
+            ComparisonOperatorType::NotEquals,
+        )),
+    );
+    pattern_map.insert(
+        r"^<".into(),
+        Option::Some(QuerySymbol::ComparisonOperator(
+            ComparisonOperatorType::Less,
+        )),
+    );
+    pattern_map.insert(
+        r"^<=".into(),
+        Option::Some(QuerySymbol::ComparisonOperator(
+            ComparisonOperatorType::LessEquals,
+        )),
+    );
+    pattern_map.insert(
+        r"^>".into(),
+        Option::Some(QuerySymbol::ComparisonOperator(
+            ComparisonOperatorType::Greater,
+        )),
+    );
+    pattern_map.insert(
+        r"^>=".into(),
+        Option::Some(QuerySymbol::ComparisonOperator(
+            ComparisonOperatorType::GreaterEquals,
+        )),
+    );
 
     let mut head_index = 0;
     let mut output = QuerySymbolStream::new();
@@ -92,7 +163,7 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
 
             let first_capture = captures.get(0).expect("There should be a capture here!");
 
-            // this is a separator
+            // this is a separator or comment
             if inferred_type.is_none() {
                 head_index += first_capture.as_str().len();
                 continue 'token_loop;
@@ -107,6 +178,8 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
                     QuerySymbol::Into => QuerySymbol::Into,
                     QuerySymbol::Values => QuerySymbol::Values,
                     QuerySymbol::Where => QuerySymbol::Where,
+                    QuerySymbol::Comma => QuerySymbol::Comma,
+                    QuerySymbol::Semicolon => QuerySymbol::Semicolon,
                     QuerySymbol::Identifier(_) => {
                         QuerySymbol::Identifier(first_capture.as_str().into())
                     }
@@ -144,31 +217,43 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
                             QuerySymbol::LogicalOperator(LogicalOperatorType::And)
                         }
                     },
-                    QuerySymbol::ComparisonOperatorType(comparison_operator_type) => {
+                    QuerySymbol::ComparisonOperator(comparison_operator_type) => {
                         match comparison_operator_type {
                             ComparisonOperatorType::Equals => {
-                                QuerySymbol::ComparisonOperatorType(ComparisonOperatorType::Equals)
+                                QuerySymbol::ComparisonOperator(ComparisonOperatorType::Equals)
                             }
                             ComparisonOperatorType::NotEquals => {
-                                QuerySymbol::ComparisonOperatorType(
-                                    ComparisonOperatorType::NotEquals,
-                                )
+                                QuerySymbol::ComparisonOperator(ComparisonOperatorType::NotEquals)
                             }
                             ComparisonOperatorType::Greater => {
-                                QuerySymbol::ComparisonOperatorType(ComparisonOperatorType::Greater)
+                                QuerySymbol::ComparisonOperator(ComparisonOperatorType::Greater)
                             }
                             ComparisonOperatorType::GreaterEquals => {
-                                QuerySymbol::ComparisonOperatorType(
+                                QuerySymbol::ComparisonOperator(
                                     ComparisonOperatorType::GreaterEquals,
                                 )
                             }
                             ComparisonOperatorType::Less => {
-                                QuerySymbol::ComparisonOperatorType(ComparisonOperatorType::Less)
+                                QuerySymbol::ComparisonOperator(ComparisonOperatorType::Less)
                             }
                             ComparisonOperatorType::LessEquals => {
-                                QuerySymbol::ComparisonOperatorType(
-                                    ComparisonOperatorType::LessEquals,
-                                )
+                                QuerySymbol::ComparisonOperator(ComparisonOperatorType::LessEquals)
+                            }
+                        }
+                    }
+                    QuerySymbol::NumericalOperator(numerical_operator_type) => {
+                        match numerical_operator_type {
+                            NumericalOperatorType::Add => {
+                                QuerySymbol::NumericalOperator(NumericalOperatorType::Add)
+                            }
+                            NumericalOperatorType::Sub => {
+                                QuerySymbol::NumericalOperator(NumericalOperatorType::Sub)
+                            }
+                            NumericalOperatorType::Mult => {
+                                QuerySymbol::NumericalOperator(NumericalOperatorType::Mult)
+                            }
+                            NumericalOperatorType::Div => {
+                                QuerySymbol::NumericalOperator(NumericalOperatorType::Div)
                             }
                         }
                     }
@@ -179,7 +264,11 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
             head_index += first_capture.as_str().len();
 
             output.append(extracted_symbol);
+
+            continue 'token_loop;
         }
+
+        return Err(format!("Sequence not recognized: {input}").into());
     }
 
     Ok(output)
