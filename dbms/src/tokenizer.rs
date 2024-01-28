@@ -2,22 +2,22 @@ use std::{error::Error, marker::Copy};
 
 use regex::{Match, Regex};
 
-pub struct Tokenizer<'a, Token, TokenType>
+pub struct Tokenizer<Token, TokenType>
 where
     TokenType: Copy,
 {
     grammar: Vec<(Regex, Option<TokenType>)>,
-    matching_function: &'a dyn for<'b> Fn(&Match<'b>, &TokenType) -> Token,
+    matching_function: Box<dyn for<'b> Fn(&Match<'b>, &TokenType) -> Result<Token, Box<dyn Error>>>,
     target_group_name: &'static str,
 }
 
-impl<'a, Token, TokenType> Tokenizer<'a, Token, TokenType>
+impl<Token, TokenType> Tokenizer<Token, TokenType>
 where
     TokenType: Copy,
 {
     pub fn build(
         grammar: &Vec<(String, Option<TokenType>)>,
-        matching_function: &'a dyn for<'b> Fn(&Match<'b>, &TokenType) -> Token,
+        matching_function: Box<dyn for<'b> Fn(&Match<'b>, &TokenType) -> Box<dyn Error>>,
         target_group_name: &'static str,
     ) -> Self {
         Self {
@@ -67,7 +67,7 @@ where
 
                 let extracted_symbol: Token = match inferred_type {
                     Some(inferred_type) => {
-                        (self.matching_function)(&captured_group_of_token, inferred_type)
+                        (self.matching_function)(&captured_group_of_token, inferred_type)?
                     }
                     None => return Err("Inferred type should not be None here!".into()),
                 };
