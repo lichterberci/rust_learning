@@ -36,6 +36,7 @@ pub enum QuerySymbol {
     Where,
     Comma,
     Semicolon,
+    Dot,
     Identifier(String),
     Value(Value),
     Parenthesis(ParenthesisType),
@@ -85,108 +86,138 @@ pub enum Value {
 
 pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
     let input = input.to_lowercase();
-    let input = input.trim();
+    let input = input.trim().to_owned() + " "; // this space is crucial for the regex patterns to match
 
-    let mut pattern_map: HashMap<String, Option<QuerySymbol>> = HashMap::new();
-    pattern_map.insert(r"^\s+".into(), Option::None); // whitespace
-    pattern_map.insert(r"^;--[^\n]*".into(), Option::None); // line comment
-    pattern_map.insert(
-        r"^\(".into(),
+    let mut pattern_map: Vec<(String, Option<QuerySymbol>)> = Vec::new();
+
+    pattern_map.push((r"^(?<token>\s+)".into(), Option::None)); // whitespace
+    pattern_map.push((r"^(?<token>;\-\-[^\n]*)".into(), Option::None)); // line comment
+    pattern_map.push((
+        r"^(?<token>\()".into(),
         Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
-    );
-    pattern_map.insert(
-        r"^\)".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>\))".into(),
         Option::Some(QuerySymbol::Parenthesis(ParenthesisType::Opening)),
-    );
-    pattern_map.insert(
-        r"^\+".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>\+)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Add)),
-    );
-    pattern_map.insert(
-        r"^\-".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>\-)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Sub)),
-    );
-    pattern_map.insert(
-        r"^\*".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>\*)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Mult)),
-    );
-    pattern_map.insert(
-        r"^/".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>/)".into(),
         Option::Some(QuerySymbol::NumericalOperator(NumericalOperatorType::Div)),
-    );
-    pattern_map.insert(
-        r"^==".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>==)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::Equals,
         )),
-    );
-    pattern_map.insert(
-        r"^!=".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>!=)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::NotEquals,
         )),
-    );
-    pattern_map.insert(
-        r"^<".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token><)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::Less,
         )),
-    );
-    pattern_map.insert(
-        r"^<=".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token><=)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::LessEquals,
         )),
-    );
-    pattern_map.insert(
-        r"^>".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>>)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::Greater,
         )),
-    );
-    pattern_map.insert(
-        r"^>=".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>>=)".into(),
         Option::Some(QuerySymbol::ComparisonOperator(
             ComparisonOperatorType::GreaterEquals,
         )),
-    );
-    pattern_map.insert(r"^,".into(), Option::Some(QuerySymbol::Comma));
-    pattern_map.insert(r"^;".into(), Option::Some(QuerySymbol::Semicolon));
-    pattern_map.insert(
-        "^\"[^(\"|\n)]*\"".into(),
+    ));
+    pattern_map.push((r"^(?<token>,)".into(), Option::Some(QuerySymbol::Comma)));
+    pattern_map.push((
+        r"^(?<token>;)[^--]".into(),
+        Option::Some(QuerySymbol::Semicolon),
+    ));
+    pattern_map.push((
+        "^(?<token>\"[^(\"|\n)]*\")".into(),
         Option::Some(QuerySymbol::Value(Value::String("".into()))),
-    );
-    pattern_map.insert(
-        r"^\d+\.\d*[^\d]".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>\d+\.\d*)[^\d]".into(),
         Option::Some(QuerySymbol::Value(Value::Float(0.0))),
-    );
-    pattern_map.insert(
-        r"^\d+[^\d]".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>\d+)[^\d]".into(),
         Option::Some(QuerySymbol::Value(Value::Integer(0))),
-    );
-    pattern_map.insert(
-        r"^(true|false)[^\w]".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>true|false)[^\w]".into(),
         Option::Some(QuerySymbol::Value(Value::Boolean(false))),
-    );
-    pattern_map.insert(r"^select[^\w]".into(), Option::Some(QuerySymbol::Select));
-    pattern_map.insert(r"^insert[^\w]".into(), Option::Some(QuerySymbol::Insert));
-    pattern_map.insert(r"^where[^\w]".into(), Option::Some(QuerySymbol::Where));
-    pattern_map.insert(r"^values[^\w]".into(), Option::Some(QuerySymbol::Values));
-    pattern_map.insert(r"^from[^\w]".into(), Option::Some(QuerySymbol::From));
-    pattern_map.insert(r"^into[^\w]".into(), Option::Some(QuerySymbol::Into));
-    pattern_map.insert(r"^delete[^\w]".into(), Option::Some(QuerySymbol::Delete));
-    pattern_map.insert(
-        r"^not[^\w]".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>select)[^\w]".into(),
+        Option::Some(QuerySymbol::Select),
+    ));
+    pattern_map.push((
+        r"^(?<token>insert)[^\w]".into(),
+        Option::Some(QuerySymbol::Insert),
+    ));
+    pattern_map.push((
+        r"^(?<token>where)[^\w]".into(),
+        Option::Some(QuerySymbol::Where),
+    ));
+    pattern_map.push((
+        r"^(?<token>values)[^\w]".into(),
+        Option::Some(QuerySymbol::Values),
+    ));
+    pattern_map.push((
+        r"^(?<token>from)[^\w]".into(),
+        Option::Some(QuerySymbol::From),
+    ));
+    pattern_map.push((
+        r"^(?<token>into)[^\w]".into(),
+        Option::Some(QuerySymbol::Into),
+    ));
+    pattern_map.push((
+        r"^(?<token>delete)[^\w]".into(),
+        Option::Some(QuerySymbol::Delete),
+    ));
+    pattern_map.push((
+        r"^(?<token>not)[^\w]".into(),
         Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::Not)),
-    );
-    pattern_map.insert(
-        r"^and[^\w]".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>and)[^\w]".into(),
         Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::And)),
-    );
-    pattern_map.insert(
-        r"^or[^\w]".into(),
+    ));
+    pattern_map.push((
+        r"^(?<token>or)[^\w]".into(),
         Option::Some(QuerySymbol::LogicalOperator(LogicalOperatorType::Or)),
-    );
+    ));
+    pattern_map.push((r"^(?<token>\.)".into(), Option::Some(QuerySymbol::Dot)));
+    pattern_map.push((
+        r"^(?<token>[\w_]+)[^\w_]".into(),
+        Option::Some(QuerySymbol::Identifier("".into())),
+    ));
 
     let mut head_index = 0;
     let mut output = QuerySymbolStream::new();
@@ -206,15 +237,17 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
 
             let captures = captures.expect("There should be a capture here!");
 
-            let first_capture = captures.get(0).expect("There should be a capture here!");
+            let captured_group_of_token = captures
+                .name("token")
+                .expect("There should be a capture here!");
 
             // this is a separator or comment
             if inferred_type.is_none() {
-                head_index += first_capture.as_str().len();
+                head_index += captured_group_of_token.as_str().len();
                 continue 'token_loop;
             }
 
-            println!("first capture: {:?}", first_capture);
+            println!("first capture: {:?}", captured_group_of_token);
 
             let extracted_symbol = match inferred_type {
                 Some(inferred_type) => match inferred_type {
@@ -228,21 +261,22 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
                     QuerySymbol::Comma => QuerySymbol::Comma,
                     QuerySymbol::Semicolon => QuerySymbol::Semicolon,
                     QuerySymbol::Identifier(_) => {
-                        QuerySymbol::Identifier(first_capture.as_str().into())
+                        QuerySymbol::Identifier(captured_group_of_token.as_str().into())
                     }
                     QuerySymbol::Value(value_type) => match value_type {
                         Value::Boolean(_) => QuerySymbol::Value(Value::Boolean(
-                            first_capture.as_str().starts_with("true"),
+                            captured_group_of_token.as_str() == "true",
                         )),
                         Value::Integer(_) => QuerySymbol::Value(Value::Integer(
-                            first_capture.as_str()[..first_capture.as_str().len() - 1].parse()?,
+                            captured_group_of_token.as_str().parse()?,
                         )),
                         Value::Float(_) => QuerySymbol::Value(Value::Float(
-                            first_capture.as_str()[..first_capture.as_str().len() - 1].parse()?,
+                            captured_group_of_token.as_str().parse()?,
                         )),
                         Value::String(_) => QuerySymbol::Value(Value::String(
                             // we leave out the first and the last characters, as they would be the "" characters
-                            first_capture.as_str()[1..first_capture.len() - 1].into(),
+                            captured_group_of_token.as_str()[1..captured_group_of_token.len() - 1]
+                                .into(),
                         )),
                     },
                     QuerySymbol::Parenthesis(parent_type) => match parent_type {
@@ -304,15 +338,16 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
                             }
                         }
                     }
+                    QuerySymbol::Dot => QuerySymbol::Dot,
                 },
                 None => return Err("Inferred type should not be None here!".into()),
             };
 
-            head_index += first_capture.as_str().len();
+            head_index += captured_group_of_token.as_str().len();
 
             println!(
                 "Extracted symbol: \"{}\" {:?}",
-                &first_capture.as_str(),
+                &captured_group_of_token.as_str(),
                 &extracted_symbol
             );
 
