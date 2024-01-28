@@ -150,6 +150,24 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
             ComparisonOperatorType::GreaterEquals,
         )),
     );
+    pattern_map.insert(r"^,".into(), Option::Some(QuerySymbol::Comma));
+    pattern_map.insert(r"^;".into(), Option::Some(QuerySymbol::Semicolon));
+    pattern_map.insert(
+        "^\"[^(\"|\n)]*\"".into(),
+        Option::Some(QuerySymbol::Value(Value::String("".into()))),
+    );
+    pattern_map.insert(
+        r"^\d+\.\d*[^\d]".into(),
+        Option::Some(QuerySymbol::Value(Value::Float(0.0))),
+    );
+    pattern_map.insert(
+        r"^\d+[^\d]".into(),
+        Option::Some(QuerySymbol::Value(Value::Integer(0))),
+    );
+    pattern_map.insert(
+        r"^(true|false)[^\w]".into(),
+        Option::Some(QuerySymbol::Value(Value::Boolean(false))),
+    );
 
     let mut head_index = 0;
     let mut output = QuerySymbolStream::new();
@@ -177,6 +195,8 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
                 continue 'token_loop;
             }
 
+            println!("first capture: {:?}", first_capture);
+
             let extracted_symbol = match inferred_type {
                 Some(inferred_type) => match inferred_type {
                     QuerySymbol::Select => QuerySymbol::Select,
@@ -192,15 +212,15 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
                         QuerySymbol::Identifier(first_capture.as_str().into())
                     }
                     QuerySymbol::Value(value_type) => match value_type {
-                        Value::Boolean(_) => {
-                            QuerySymbol::Value(Value::Boolean(first_capture.as_str() == "true"))
-                        }
-                        Value::Integer(_) => {
-                            QuerySymbol::Value(Value::Integer(first_capture.as_str().parse()?))
-                        }
-                        Value::Float(_) => {
-                            QuerySymbol::Value(Value::Float(first_capture.as_str().parse()?))
-                        }
+                        Value::Boolean(_) => QuerySymbol::Value(Value::Boolean(
+                            first_capture.as_str().starts_with("true"),
+                        )),
+                        Value::Integer(_) => QuerySymbol::Value(Value::Integer(
+                            first_capture.as_str()[..first_capture.as_str().len() - 1].parse()?,
+                        )),
+                        Value::Float(_) => QuerySymbol::Value(Value::Float(
+                            first_capture.as_str()[..first_capture.as_str().len() - 1].parse()?,
+                        )),
                         Value::String(_) => QuerySymbol::Value(Value::String(
                             // we leave out the first and the last characters, as they would be the "" characters
                             first_capture.as_str()[1..first_capture.len() - 1].into(),
