@@ -222,12 +222,20 @@ pub fn lex_string(input: &str) -> Result<QuerySymbolStream, Box<dyn Error>> {
     let mut head_index = 0;
     let mut output = QuerySymbolStream::new();
 
+    let parsed_pattern_map: Vec<(Regex, &Option<QuerySymbol>)> = pattern_map
+        .iter()
+        .map(|(pattern, symbol_type)| {
+            (
+                Regex::new(pattern).expect("Pattern should be valid regex!"),
+                symbol_type,
+            )
+        })
+        .collect();
+
     'token_loop: while head_index < input.len() {
         let input = &input[head_index..];
 
-        for (pattern, inferred_type) in &pattern_map {
-            let pattern = Regex::new(pattern)?;
-
+        for (pattern, inferred_type) in &parsed_pattern_map {
             let captures = pattern.captures(input);
 
             // no matching here
