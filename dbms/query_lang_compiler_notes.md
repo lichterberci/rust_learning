@@ -42,7 +42,7 @@
 
 ### Select statement
 
-```puml
+```plantuml
 @startuml Select statement
 title Select statement
 start
@@ -77,7 +77,7 @@ stop
 
 ### Boolean expression
 
-```puml
+```plantuml
 @startuml boolean expression
 title BooleanExpression (with left recursion and without parenthesis-handling)
 start
@@ -133,7 +133,7 @@ end
 
 #### After removing left recursion and adding parenthesis-handling:
 
-```puml
+```plantuml
 @startuml
 title BooleanExpression
 start
@@ -149,7 +149,7 @@ end
 @enduml
 ```
 
-```puml
+```plantuml
 @startuml boolean expression
 title BooleanExpressionBody
 start
@@ -158,15 +158,18 @@ split
 :BooleanExpression;
 split again
 split
+partition Column {
 :Identifier;
 split
 split again
 :Dot;
 :Identifier;
 end split
+}
 split again 
 :Value;
 end split
+partition ComparisonOperator {
 split
 :Equals;
 split again
@@ -180,13 +183,17 @@ split again
 split again
 :MoreEquals;
 end split
+}
 split
+partition Column {
 :Identifier;
 split
 split again
 :Dot;
 :Identifier;
 end split
+}
+
 split again 
 :Value;
 end split
@@ -195,7 +202,7 @@ end
 @enduml
 ```
 
-```puml
+```plantuml
 @startuml boolean expression prime
 title BooleanExpressionPrime
 start

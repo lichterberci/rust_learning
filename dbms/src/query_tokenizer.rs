@@ -4,7 +4,7 @@ use regex::Match;
 
 use crate::tokenizer;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum QueryToken {
     Select,
     Insert,
@@ -24,7 +24,13 @@ pub enum QueryToken {
     NumericalOperator(NumericalOperatorType),
 }
 
-#[derive(Debug, Clone, Copy)]
+impl QueryToken {
+    pub fn get_type(&self) -> QueryTokenType {
+        QueryTokenType::from(*self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum QueryTokenType {
     Select,
     Insert,
@@ -44,13 +50,49 @@ pub enum QueryTokenType {
     NumericalOperator(NumericalOperatorType),
 }
 
-#[derive(Debug, Clone, Copy)]
+impl From<QueryToken> for QueryTokenType {
+    fn from(value: QueryToken) -> Self {
+        match value {
+            QueryToken::Select => QueryTokenType::Select,
+            QueryToken::Insert => QueryTokenType::Insert,
+            QueryToken::Delete => QueryTokenType::Delete,
+            QueryToken::From => QueryTokenType::From,
+            QueryToken::Into => QueryTokenType::Into,
+            QueryToken::Values => QueryTokenType::Values,
+            QueryToken::Where => QueryTokenType::Where,
+            QueryToken::Comma => QueryTokenType::Comma,
+            QueryToken::Semicolon => QueryTokenType::Semicolon,
+            QueryToken::Dot => QueryTokenType::Dot,
+            QueryToken::Identifier(_) => QueryTokenType::Identifier,
+            QueryToken::Value(value_type) => QueryTokenType::Value(match value_type {
+                Value::Boolean(_) => ValueType::Boolean,
+                Value::Integer(_) => ValueType::Integer,
+                Value::Float(_) => ValueType::Float,
+                Value::String(_) => ValueType::String,
+            }),
+            QueryToken::Parenthesis(parenthesis_type) => {
+                QueryTokenType::Parenthesis(parenthesis_type)
+            }
+            QueryToken::LogicalOperator(logical_operator) => {
+                QueryTokenType::LogicalOperator(logical_operator)
+            }
+            QueryToken::ComparisonOperator(comparison_operator) => {
+                QueryTokenType::ComparisonOperator(comparison_operator)
+            }
+            QueryToken::NumericalOperator(numerical_operator) => {
+                QueryTokenType::NumericalOperator(numerical_operator)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ParenthesisType {
     Opening,
     Closing,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ComparisonOperatorType {
     Equals,
     NotEquals,
@@ -60,14 +102,14 @@ pub enum ComparisonOperatorType {
     LessEquals,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LogicalOperatorType {
     Not,
     Or,
     And,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NumericalOperatorType {
     Add,
     Sub,
@@ -83,7 +125,7 @@ pub enum Value {
     String(String),
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ValueType {
     Boolean,
     Integer,
