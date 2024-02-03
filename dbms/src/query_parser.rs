@@ -1,9 +1,7 @@
-use core::panic;
-use std::{error::Error, fmt::Debug, str::pattern::Pattern};
+use std::{error::Error, ops::Not};
 
-use crate::{
-    query_tokenizer::{self, ParenthesisType, QueryToken, QueryTokenType, Value, ValueType},
-    rel_alg_ast,
+use crate::query_tokenizer::{
+    LogicalOperatorType, ParenthesisType, QueryToken, QueryTokenType, ValueType::Integer,
 };
 
 struct TokenSupplier {
@@ -75,7 +73,7 @@ impl TokenSupplier {
 pub fn parse_boolean_expression(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::Parenthesis(ParenthesisType::Opening) {
         Ok({
-            tokens.consume_with_assert(QueryTokenType::Parenthesis(ParenthesisType::Opening));
+            tokens.consume();
             parse_boolean_expression_body(tokens)?;
             tokens.consume_with_assert(QueryTokenType::Parenthesis(ParenthesisType::Closing));
         })
@@ -87,5 +85,36 @@ pub fn parse_boolean_expression(tokens: &mut TokenSupplier) -> Result<(), Box<dy
 }
 
 fn parse_boolean_expression_body(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
+    if tokens.get()?.get_type() == QueryTokenType::LogicalOperator(LogicalOperatorType::Not) {
+        Ok({
+            tokens.consume();
+            parse_boolean_expression(tokens)?;
+        })
+    } else {
+        Ok({
+            parse_compared_value(tokens)?;
+        })
+    }
+}
+
+fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
+    if tokens.get()?.get_type() == QueryTokenType::Identifier {
+        Ok({
+            tokens.consume();
+            if tokens.get()?.get_type() == QueryTokenType::Dot {
+                tokens.consume();
+                tokens.consume_with_assert(QueryTokenType::Identifier);
+            }
+        })
+    } else if let QueryTokenType::Value(_) = tokens.get()?.get_type() {
+        Ok({
+            tokens.consume();
+        })
+    } else {
+        Err(format!("Expected Identifier or Value but got {:?}", tokens.get()).into())
+    }
+}
+
+fn parse_boolean_expression_prime(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
