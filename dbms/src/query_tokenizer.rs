@@ -26,7 +26,7 @@ pub enum QueryToken {
 
 impl QueryToken {
     pub fn get_type(&self) -> QueryTokenType {
-        QueryTokenType::from(*self)
+        QueryTokenType::from(self)
     }
 }
 
@@ -50,8 +50,8 @@ pub enum QueryTokenType {
     NumericalOperator(NumericalOperatorType),
 }
 
-impl From<QueryToken> for QueryTokenType {
-    fn from(value: QueryToken) -> Self {
+impl From<&QueryToken> for QueryTokenType {
+    fn from(value: &QueryToken) -> Self {
         match value {
             QueryToken::Select => QueryTokenType::Select,
             QueryToken::Insert => QueryTokenType::Insert,
@@ -71,16 +71,16 @@ impl From<QueryToken> for QueryTokenType {
                 Value::String(_) => ValueType::String,
             }),
             QueryToken::Parenthesis(parenthesis_type) => {
-                QueryTokenType::Parenthesis(parenthesis_type)
+                QueryTokenType::Parenthesis(*parenthesis_type)
             }
             QueryToken::LogicalOperator(logical_operator) => {
-                QueryTokenType::LogicalOperator(logical_operator)
+                QueryTokenType::LogicalOperator(*logical_operator)
             }
             QueryToken::ComparisonOperator(comparison_operator) => {
-                QueryTokenType::ComparisonOperator(comparison_operator)
+                QueryTokenType::ComparisonOperator(*comparison_operator)
             }
             QueryToken::NumericalOperator(numerical_operator) => {
-                QueryTokenType::NumericalOperator(numerical_operator)
+                QueryTokenType::NumericalOperator(*numerical_operator)
             }
         }
     }
@@ -117,7 +117,7 @@ pub enum NumericalOperatorType {
     Div,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Boolean(bool),
     Integer(i64),
@@ -149,7 +149,7 @@ impl QueryTokenizer {
         ));
         grammar.push((
             r"^(?<token>\))".into(),
-            Option::Some(QueryTokenType::Parenthesis(ParenthesisType::Opening)),
+            Option::Some(QueryTokenType::Parenthesis(ParenthesisType::Closing)),
         ));
         grammar.push((
             r"^(?<token>\+)".into(),

@@ -1,16 +1,16 @@
-use std::{error::Error, ops::Not};
+use std::{error::Error, fmt::format, ops::Not};
 
 use crate::query_tokenizer::{
     LogicalOperatorType, ParenthesisType, QueryToken, QueryTokenType, ValueType::Integer,
 };
 
-struct TokenSupplier {
+pub struct TokenSupplier {
     tokens: Vec<QueryToken>,
     head: usize,
 }
 
 impl TokenSupplier {
-    fn new(tokens: Vec<QueryToken>) -> Self {
+    pub fn new(tokens: Vec<QueryToken>) -> Self {
         Self { tokens, head: 0 }
     }
 
@@ -20,6 +20,7 @@ impl TokenSupplier {
 
     fn consume(&mut self) -> Result<&QueryToken, Box<dyn Error>> {
         let result = self.tokens.get(self.head);
+        println!("Consumed: {:#?}", result);
         self.head += 1;
         match result {
             Some(result) => Ok(result),
@@ -37,14 +38,12 @@ impl TokenSupplier {
     fn get_with_assert(&self, token_type: QueryTokenType) -> Result<&QueryToken, Box<dyn Error>> {
         let current_token = self.get()?;
 
-        if QueryTokenType::from(*current_token) == token_type {
+        if QueryTokenType::from(current_token) == token_type {
             Ok(current_token)
         } else {
             Err(format!(
-                "Expected a {:?} token after {:?} but found {:?}!",
-                token_type,
-                self.tokens.get(self.head.wrapping_sub(1)),
-                current_token
+                "Expected a {:?} token but found {:?}!",
+                token_type, current_token
             )
             .into())
         }
@@ -56,14 +55,12 @@ impl TokenSupplier {
     ) -> Result<&QueryToken, Box<dyn Error>> {
         let current_token = self.consume()?;
 
-        if QueryTokenType::from(*current_token) == token_type {
+        if QueryTokenType::from(current_token) == token_type {
             Ok(current_token)
         } else {
             Err(format!(
-                "Expected a {:?} token after {:?} but found {:?}!",
-                token_type,
-                self.tokens.get(self.head.wrapping_sub(1)),
-                current_token
+                "Expected a {:?} token but found {:?}!",
+                token_type, current_token
             )
             .into())
         }
@@ -72,49 +69,79 @@ impl TokenSupplier {
 
 pub fn parse_boolean_expression(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::Parenthesis(ParenthesisType::Opening) {
-        Ok({
-            tokens.consume();
-            parse_boolean_expression_body(tokens)?;
-            tokens.consume_with_assert(QueryTokenType::Parenthesis(ParenthesisType::Closing));
-        })
+        tokens.consume()?;
+
+        parse_boolean_expression_body(tokens)?;
+
+        tokens.consume_with_assert(QueryTokenType::Parenthesis(ParenthesisType::Closing))?;
     } else {
-        Ok({
-            parse_boolean_expression_body(tokens)?;
-        })
+        parse_boolean_expression_body(tokens)?;
     }
+
+    parse_boolean_expression_prime(tokens)?;
+
+    Ok(())
 }
 
 fn parse_boolean_expression_body(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::LogicalOperator(LogicalOperatorType::Not) {
-        Ok({
-            tokens.consume();
-            parse_boolean_expression(tokens)?;
-        })
+        tokens.consume()?;
+        parse_boolean_expression(tokens)?;
     } else {
-        Ok({
-            parse_compared_value(tokens)?;
-        })
+        parse_compared_value(tokens)?;
+
+        if let QueryTokenType::ComparisonOperator(comparison_operator_type) =
+            tokens.get()?.get_type()
+        {
+            tokens.consume()?;
+        } else {
+            return Err(format!(
+                "Expected a comparison operator but found {:?}",
+                tokens.get()?
+            )
+            .into());
+        }
+
+        parse_compared_value(tokens)?;
     }
+
+    parse_boolean_expression_prime(tokens)?;
+
+    Ok(())
 }
 
 fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::Identifier {
         Ok({
-            tokens.consume();
+            tokens.consume()?;
             if tokens.get()?.get_type() == QueryTokenType::Dot {
-                tokens.consume();
-                tokens.consume_with_assert(QueryTokenType::Identifier);
+                tokens.consume()?;
+                tokens.consume_with_assert(QueryTokenType::Identifier)?;
             }
         })
     } else if let QueryTokenType::Value(_) = tokens.get()?.get_type() {
         Ok({
-            tokens.consume();
+            tokens.consume()?;
         })
     } else {
-        Err(format!("Expected Identifier or Value but got {:?}", tokens.get()).into())
+        Err(format!("Expected Identifier or Value but got {:?}", tokens.get()?).into())
     }
 }
 
 fn parse_boolean_expression_prime(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
-    Ok(())
+    if let QueryTokenType::LogicalOperator(logical_operator_type) = tokens.get()?.get_type() {
+        match logical_operator_type {
+            LogicalOperatorType::Or | LogicalOperatorType::And => Ok({
+                tokens.consume()?;
+                parse_boolean_expression(tokens)?;
+            }),
+            LogicalOperatorType::Not => Err(format!(
+                "Expected an And or Or logical operator but found {:?} instead!",
+                tokens.get()?
+            )
+            .into()),
+        }
+    } else {
+        Ok(())
+    }
 }
