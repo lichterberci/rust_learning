@@ -79,7 +79,7 @@ stop
 
 ```puml
 @startuml boolean expression
-title BooleanExpression (with left recursion)
+title BooleanExpression (with left recursion and without parenthesis-handling)
 start
 split
 :BooleanExpression;
@@ -95,6 +95,11 @@ split again
 split again
 split
 :Identifier;
+split
+split again
+:Dot;
+:Identifier;
+end split
 split again 
 :Value;
 end split
@@ -113,6 +118,11 @@ split again
 end split
 split
 :Identifier;
+split
+split again
+:Dot;
+:Identifier;
+end split
 split again 
 :Value;
 end split
@@ -121,18 +131,39 @@ end
 @enduml
 ```
 
-After removing left recursion:
+#### After removing left recursion and adding parenthesis-handling:
+
+```puml
+@startuml
+title BooleanExpression
+start
+split
+:BooleanExpressionBody;
+split again
+:OpenParenthesis;
+:BooleanExpressionBody;
+:ClosedParenthesis;
+end split
+:BooleanExpressionPrime;
+end
+@enduml
+```
 
 ```puml
 @startuml boolean expression
-title BooleanExpression
-start 
+title BooleanExpressionBody
+start
 split
 :Not;
 :BooleanExpression;
 split again
 split
 :Identifier;
+split
+split again
+:Dot;
+:Identifier;
+end split
 split again 
 :Value;
 end split
@@ -151,11 +182,15 @@ split again
 end split
 split
 :Identifier;
+split
+split again
+:Dot;
+:Identifier;
+end split
 split again 
 :Value;
 end split
 end split
-:BooleanExpressionPrime;
 end
 @enduml
 ```
