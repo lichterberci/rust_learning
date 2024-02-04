@@ -1,8 +1,6 @@
-use std::{error::Error, fmt::format, ops::Not};
+use std::error::Error;
 
-use crate::query_tokenizer::{
-    LogicalOperatorType, ParenthesisType, QueryToken, QueryTokenType, ValueType::Integer,
-};
+use crate::query_tokenizer::{LogicalOperatorType, ParenthesisType, QueryToken, QueryTokenType};
 
 pub struct TokenSupplier {
     tokens: Vec<QueryToken>,
