@@ -82,6 +82,10 @@ stop
 title BooleanExpression (with left recursion and without parenthesis-handling)
 start
 split
+:OpeningParenthesis;
+:BooleanExpression;
+:ClosingParenthesis;
+split again
 :BooleanExpression;
 split
 :And;
