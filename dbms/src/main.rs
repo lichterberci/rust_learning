@@ -15,16 +15,15 @@ fn main() {
         ;--WHERE tab1.col == tab2.col
         ;--AND tab1.col123 != false OR tab1.col321 < 18.0
 
-        (asd.col == 123 or dsa.col2 > 12) and (sda != false)
-        ;--asd == dsa.loc
+        ;--(asd.col == 123 or dsa.col2 > 12) and (sda != false)
+        asd == dsa.loc or 1 == 1
     "#
     ).unwrap());
 
-    if let Err(err) = parse_boolean_expression(&mut TokenSupplier::new(token_vec)) {
-        println!("Parsing error: {}", err);
-    } else {
-        println!("Parsing successful!")
-    }
+    println!(
+        "{:?}",
+        parse_boolean_expression(&mut TokenSupplier::new(token_vec))
+    )
 
     // dbg!(lex_string("and and or"));
 }

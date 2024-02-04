@@ -1,6 +1,10 @@
-use std::error::Error;
+use core::panic;
+use std::{clone, error::Error};
 
-use crate::query_tokenizer::{LogicalOperatorType, ParenthesisType, QueryToken, QueryTokenType};
+use crate::{
+    query_tokenizer::{LogicalOperatorType, ParenthesisType, QueryToken, QueryTokenType, Value},
+    rel_alg_ast::SelectionExpression,
+};
 
 pub struct TokenSupplier {
     tokens: Vec<QueryToken>,
@@ -65,24 +69,70 @@ impl TokenSupplier {
     }
 }
 
-pub fn parse_boolean_expression(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
+pub fn parse_boolean_expression(
+    tokens: &mut TokenSupplier,
+) -> Result<SelectionExpression, Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::Parenthesis(ParenthesisType::Opening) {
         tokens.consume()?;
 
-        parse_boolean_expression(tokens)?;
+        let left_subtree = parse_boolean_expression(tokens)?;
 
         tokens.consume_with_assert(QueryTokenType::Parenthesis(ParenthesisType::Closing))?;
+
+        let right_subtree = parse_boolean_expression_prime(tokens)?;
+
+        let subtree = if let Some(right_subtree) = right_subtree {
+            match right_subtree {
+                SelectionExpression::And(_, right) => {
+                    SelectionExpression::And(Some(Box::new(left_subtree)), right)
+                }
+                SelectionExpression::Or(_, right) => {
+                    SelectionExpression::Or(Some(Box::new(left_subtree)), right)
+                }
+                _ => panic!(
+                    "Error during parsing! unexpected token: {:?}",
+                    right_subtree
+                ),
+            }
+        } else {
+            left_subtree
+        };
+
+        Ok(subtree)
     } else if tokens.get()?.get_type() == QueryTokenType::LogicalOperator(LogicalOperatorType::Not)
     {
         tokens.consume()?;
-        parse_boolean_expression(tokens)?;
-    } else {
-        parse_compared_value(tokens)?;
+        let left_subtree = parse_boolean_expression(tokens)?;
+        let right_subtree = parse_boolean_expression_prime(tokens)?;
 
-        if let QueryTokenType::ComparisonOperator(_comparison_operator_type) =
-            tokens.get()?.get_type()
-        {
-            tokens.consume()?;
+        let subtree = if let Some(right_subtree) = right_subtree {
+            match right_subtree {
+                SelectionExpression::And(_, right) => {
+                    SelectionExpression::And(Some(Box::new(left_subtree)), right)
+                }
+                SelectionExpression::Or(_, right) => {
+                    SelectionExpression::Or(Some(Box::new(left_subtree)), right)
+                }
+                _ => panic!(
+                    "Error during parsing! unexpected token: {:?}",
+                    right_subtree
+                ),
+            }
+        } else {
+            left_subtree
+        };
+
+        Ok(SelectionExpression::Not(Box::new(subtree)))
+    } else {
+        let left_operand = parse_compared_value(tokens)?;
+
+        let comparison_operator;
+
+        if let QueryTokenType::ComparisonOperator(_) = tokens.get()?.get_type() {
+            comparison_operator = match tokens.consume()? {
+                QueryToken::ComparisonOperator(comparison_operator) => *comparison_operator,
+                _ => panic!("Error during parsing! Expected a comparison operator!"),
+            };
         } else {
             return Err(format!(
                 "Expected a comparison operator but found {:?}",
@@ -91,46 +141,118 @@ pub fn parse_boolean_expression(tokens: &mut TokenSupplier) -> Result<(), Box<dy
             .into());
         }
 
-        parse_compared_value(tokens)?;
+        let right_operand = parse_compared_value(tokens)?;
+
+        let left_subtree = SelectionExpression::Comparison(
+            Some(Box::new(left_operand)),
+            Some(Box::new(right_operand)),
+            comparison_operator,
+        );
+
+        let right_subtree = parse_boolean_expression_prime(tokens)?;
+
+        let subtree = if let Some(right_subtree) = right_subtree {
+            match right_subtree {
+                SelectionExpression::And(_, right) => {
+                    SelectionExpression::And(Some(Box::new(left_subtree)), right)
+                }
+                SelectionExpression::Or(_, right) => {
+                    SelectionExpression::Or(Some(Box::new(left_subtree)), right)
+                }
+                _ => panic!(
+                    "Error during parsing! unexpected token: {:?}",
+                    right_subtree
+                ),
+            }
+        } else {
+            left_subtree
+        };
+
+        Ok(subtree)
     }
-
-    parse_boolean_expression_prime(tokens)?;
-
-    Ok(())
 }
 
-fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
+fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<SelectionExpression, Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::Identifier {
-        Ok({
-            tokens.consume()?;
-            if tokens.get()?.get_type() == QueryTokenType::Dot {
-                tokens.consume()?;
-                tokens.consume_with_assert(QueryTokenType::Identifier)?;
-            }
-        })
-    } else if let QueryTokenType::Value(_) = tokens.get()?.get_type() {
-        Ok({
-            tokens.consume()?;
-        })
+        let first_identifier = tokens.consume()?;
+
+        let first_id_string = match first_identifier {
+            QueryToken::Identifier(name) => String::from(name),
+            _ => panic!("Error during parsing! Expected an identifier!"),
+        };
+
+        if tokens.get()?.get_type() != QueryTokenType::Dot {
+            return Ok(SelectionExpression::Identifier(first_id_string));
+        }
+
+        tokens.consume()?; // dot
+
+        let second_identifier = tokens.consume_with_assert(QueryTokenType::Identifier)?;
+
+        let second_id_string = match second_identifier {
+            QueryToken::Identifier(name) => String::from(name),
+            _ => panic!("Error during parsing! Expected an identifier!"),
+        };
+
+        return Ok(SelectionExpression::Identifier(String::from(format!(
+            "{first_id_string}.{second_id_string}"
+        ))));
+    } else if let QueryToken::Value(_) = tokens.get()? {
+        let token = tokens.consume()?;
+        Ok(SelectionExpression::Value(match token {
+            QueryToken::Value(value) => value.clone(),
+            _ => panic!("Error during parsing! Expected a value here!"),
+        }))
     } else {
         Err(format!("Expected Identifier or Value but got {:?}", tokens.get()?).into())
     }
 }
 
-fn parse_boolean_expression_prime(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
+fn parse_boolean_expression_prime(
+    tokens: &mut TokenSupplier,
+) -> Result<Option<SelectionExpression>, Box<dyn Error>> {
     if let Some(token) = tokens.peek().map(|x| x.get_type()) {
         if QueryTokenType::LogicalOperator(LogicalOperatorType::And) == token
             || QueryTokenType::LogicalOperator(LogicalOperatorType::Or) == token
         {
             Ok({
-                tokens.consume()?;
-                parse_boolean_expression(tokens)?;
-                parse_boolean_expression_prime(tokens)?;
+                let left_subtree = parse_boolean_expression(tokens)?;
+                let right_subtree = parse_boolean_expression_prime(tokens)?;
+
+                let subtree = if let Some(right_subtree) = right_subtree {
+                    match right_subtree {
+                        SelectionExpression::And(_, right) => {
+                            SelectionExpression::And(Some(Box::new(left_subtree)), right)
+                        }
+                        SelectionExpression::Or(_, right) => {
+                            SelectionExpression::Or(Some(Box::new(left_subtree)), right)
+                        }
+                        _ => panic!(
+                            "Error during parsing! unexpected token: {:?}",
+                            right_subtree
+                        ),
+                    }
+                } else {
+                    left_subtree
+                };
+
+                match token {
+                    QueryTokenType::LogicalOperator(operator_type) => match operator_type {
+                        LogicalOperatorType::Or => {
+                            Some(SelectionExpression::Or(None, Some(Box::new(subtree))))
+                        }
+                        LogicalOperatorType::And => {
+                            Some(SelectionExpression::And(None, Some(Box::new(subtree))))
+                        }
+                        _ => panic!("Error during parsing! Expected and or or!"),
+                    },
+                    _ => panic!("Error during parsing! Expected and or or!"),
+                }
             })
         } else {
-            Ok(())
+            Ok(None)
         }
     } else {
-        Ok(())
+        Ok(None)
     }
 }
