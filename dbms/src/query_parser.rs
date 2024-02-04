@@ -14,8 +14,8 @@ impl TokenSupplier {
         Self { tokens, head: 0 }
     }
 
-    fn peek_next(&self) -> Option<&QueryToken> {
-        self.tokens.get(self.head + 1)
+    fn peek(&self) -> Option<&QueryToken> {
+        self.tokens.get(self.head)
     }
 
     fn consume(&mut self) -> Result<&QueryToken, Box<dyn Error>> {
@@ -71,26 +71,17 @@ pub fn parse_boolean_expression(tokens: &mut TokenSupplier) -> Result<(), Box<dy
     if tokens.get()?.get_type() == QueryTokenType::Parenthesis(ParenthesisType::Opening) {
         tokens.consume()?;
 
-        parse_boolean_expression_body(tokens)?;
+        parse_boolean_expression(tokens)?;
 
         tokens.consume_with_assert(QueryTokenType::Parenthesis(ParenthesisType::Closing))?;
-    } else {
-        parse_boolean_expression_body(tokens)?;
-    }
-
-    parse_boolean_expression_prime(tokens)?;
-
-    Ok(())
-}
-
-fn parse_boolean_expression_body(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
-    if tokens.get()?.get_type() == QueryTokenType::LogicalOperator(LogicalOperatorType::Not) {
+    } else if tokens.get()?.get_type() == QueryTokenType::LogicalOperator(LogicalOperatorType::Not)
+    {
         tokens.consume()?;
         parse_boolean_expression(tokens)?;
     } else {
         parse_compared_value(tokens)?;
 
-        if let QueryTokenType::ComparisonOperator(comparison_operator_type) =
+        if let QueryTokenType::ComparisonOperator(_comparison_operator_type) =
             tokens.get()?.get_type()
         {
             tokens.consume()?;
@@ -129,17 +120,17 @@ fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>
 }
 
 fn parse_boolean_expression_prime(tokens: &mut TokenSupplier) -> Result<(), Box<dyn Error>> {
-    if let QueryTokenType::LogicalOperator(logical_operator_type) = tokens.get()?.get_type() {
-        match logical_operator_type {
-            LogicalOperatorType::Or | LogicalOperatorType::And => Ok({
+    if let Some(token) = tokens.peek().map(|x| x.get_type()) {
+        if QueryTokenType::LogicalOperator(LogicalOperatorType::And) == token
+            || QueryTokenType::LogicalOperator(LogicalOperatorType::Or) == token
+        {
+            Ok({
                 tokens.consume()?;
                 parse_boolean_expression(tokens)?;
-            }),
-            LogicalOperatorType::Not => Err(format!(
-                "Expected an And or Or logical operator but found {:?} instead!",
-                tokens.get()?
-            )
-            .into()),
+                parse_boolean_expression_prime(tokens)?;
+            })
+        } else {
+            Ok(())
         }
     } else {
         Ok(())

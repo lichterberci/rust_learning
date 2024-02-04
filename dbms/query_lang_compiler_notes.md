@@ -131,31 +131,19 @@ end
 @enduml
 ```
 
-#### After removing left recursion and adding parenthesis-handling:
-
-```plantuml
-@startuml
-title BooleanExpression
-start
-split
-:BooleanExpressionBody;
-split again
-:OpenParenthesis;
-:BooleanExpressionBody;
-:ClosedParenthesis;
-end split
-:BooleanExpressionPrime;
-end
-@enduml
-```
+#### After removing left recursion and adding parenthesis-handling
 
 ```plantuml
 @startuml boolean expression
-title BooleanExpressionBody
+title BooleanExpression
 start
 split
 :Not;
 :BooleanExpression;
+split again
+:OpeningParenthesis;
+:BooleanExpression;
+:ClosingParenthesis;
 split again
 split
 partition Column {
@@ -215,6 +203,7 @@ split again
 :Or;
 end split
 :BooleanExpression;
+:BooleanExpressionPrime;
 end split
 end
 @enduml
