@@ -35,9 +35,19 @@ pub fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<String>
             _ => return Err("Identifier expected!".into()),
         };
 
-        Ok(Some(vec![String::from(format!(
-            "{identifier}.{second_identifier}"
-        ))]))
+        let identifier = String::from(format!("{identifier}.{second_identifier}"));
+
+        if tokens.get()?.get_type() == QueryTokenType::Comma {
+            tokens.consume()?; // ,
+
+            let Some(rest_of_selection) = parse_projection(tokens)? else {
+                return Err("Identifier expected after comma when selecting columns!".into());
+            };
+
+            Ok(Some(vec![vec![identifier], rest_of_selection].concat()))
+        } else {
+            Ok(Some(vec![identifier]))
+        }
     } else {
         Ok(Some(vec![identifier]))
     }
@@ -54,7 +64,7 @@ pub fn parse_source_tables(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<
 
         let rest_of_selection = parse_source_tables(tokens)?;
 
-        Ok(RelAlgAST::DescartesProduct(
+        Ok(RelAlgAST::CartesianProduct(
             Box::new(RelAlgAST::Relation(identifier)),
             Box::new(rest_of_selection),
         ))

@@ -18,6 +18,7 @@ impl TokenSupplier {
 
     pub fn consume(&mut self) -> Result<&QueryToken, Box<dyn Error>> {
         let result = self.tokens.get(self.head);
+        println!("Consumed {:?}", result);
         self.head += 1;
         match result {
             Some(result) => Ok(result),
