@@ -86,7 +86,6 @@ pub fn parse_boolean_expression(
     {
         tokens.consume()?;
         let left_subtree = parse_boolean_expression(tokens)?;
-        let right_subtree = parse_boolean_expression_prime(tokens)?;
 
         let subtree = combine_boolean_expression_with_prime(tokens, left_subtree)?;
 
@@ -190,6 +189,8 @@ fn parse_boolean_expression_prime(
         if QueryTokenType::LogicalOperator(LogicalOperatorType::And) == token
             || QueryTokenType::LogicalOperator(LogicalOperatorType::Or) == token
         {
+            tokens.consume()?; // AND | OR
+
             Ok({
                 let left_subtree = parse_boolean_expression(tokens)?;
 

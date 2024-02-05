@@ -149,18 +149,7 @@ split again
 :BooleanExpression;
 :ClosingParenthesis;
 split again
-split
-partition Column {
-:Identifier;
-split
-split again
-:Dot;
-:Identifier;
-end split
-}
-split again 
-:Value;
-end split
+:ComparedValue;
 partition ComparisonOperator {
 split
 :Equals;
@@ -176,19 +165,7 @@ split again
 :MoreEquals;
 end split
 }
-split
-partition Column {
-:Identifier;
-split
-split again
-:Dot;
-:Identifier;
-end split
-}
-
-split again 
-:Value;
-end split
+:ComparedValue;
 end split
 :BooleanExpressionPrime;
 end
@@ -213,3 +190,38 @@ end
 @enduml
 ```
 
+---
+#### Compared value
+
+```plantuml
+title ComparedValue
+start
+split
+:Identifier;
+split
+:Dot;
+:Identifier;
+split again
+end split
+split again
+:Value;
+split again
+:OpeningParenthesis;
+:ComparedValue;
+:ClosingParenthesis;
+end split
+:ComparedValuePrime;
+end
+```
+
+```plantuml
+title ComparedValuePrime
+start
+split
+split again
+:NumericalOperator;
+:ComparedValue;
+:ComparedValuePrime;
+end split
+end
+```
