@@ -14,17 +14,11 @@ pub enum SelectionExpression {
     Identifier(String),
     Value(Value),
     Comparison(
-        Option<Box<SelectionExpression>>,
-        Option<Box<SelectionExpression>>,
+        Box<SelectionExpression>,
+        Box<SelectionExpression>,
         ComparisonOperatorType,
     ),
-    And(
-        Option<Box<SelectionExpression>>,
-        Option<Box<SelectionExpression>>,
-    ),
-    Or(
-        Option<Box<SelectionExpression>>,
-        Option<Box<SelectionExpression>>,
-    ),
+    And(Box<SelectionExpression>, Box<SelectionExpression>),
+    Or(Box<SelectionExpression>, Box<SelectionExpression>),
     Not(Box<SelectionExpression>),
 }
