@@ -4,6 +4,7 @@ use crate::query_tokenizer::{ComparisonOperatorType, NumericalOperatorType, Quer
 pub enum RelAlgAST {
     Relation(String),
     Union(Box<RelAlgAST>, Box<RelAlgAST>),
+    Difference(Box<RelAlgAST>, Box<RelAlgAST>),
     CartesianProduct(Box<RelAlgAST>, Box<RelAlgAST>),
     Selection(Box<RelAlgAST>, SelectionExpression),
     Projection(Box<RelAlgAST>, Vec<String>),
