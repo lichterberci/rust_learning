@@ -3,7 +3,7 @@ use dbms::query_parser::{parse_boolean_expression, TokenSupplier};
 fn main() {
     let tokenizer = dbms::query_tokenizer::QueryTokenizer::new();
 
-    let token_vec = dbg!(tokenizer.tokenize(
+    let token_vec = tokenizer.tokenize(
         r#"
 
         ;--SELECT * FROM table WHERE table.column < 12.3 or table.column2 == false;
@@ -15,10 +15,10 @@ fn main() {
         ;--WHERE tab1.col == tab2.col
         ;--AND tab1.col123 != false OR tab1.col321 < 18.0
 
-        asd.col == 123 or dsa.col2 > 12 and (sda != false)
-        ;--asd == dsa.loc or 1 == 1
+        asd.col / (13 + asd.col2) == 123 or (asd == true or not dsa.col2 > 12 - 3) and sda != false
+        ;--asd == dsa.loc or 1 == 1 *2
     "#
-    ).unwrap());
+    ).unwrap();
 
     println!(
         "{:#?}",

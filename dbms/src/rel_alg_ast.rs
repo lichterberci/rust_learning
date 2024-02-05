@@ -1,4 +1,4 @@
-use crate::query_tokenizer::{ComparisonOperatorType, Value};
+use crate::query_tokenizer::{ComparisonOperatorType, NumericalOperatorType, QueryToken, Value};
 
 #[derive(Debug, PartialEq)]
 pub enum RelAlgAST {
@@ -11,14 +11,23 @@ pub enum RelAlgAST {
 
 #[derive(Debug, PartialEq)]
 pub enum SelectionExpression {
-    Identifier(String),
-    Value(Value),
     Comparison(
-        Box<SelectionExpression>,
-        Box<SelectionExpression>,
+        Box<ComparedValue>,
+        Box<ComparedValue>,
         ComparisonOperatorType,
     ),
     And(Box<SelectionExpression>, Box<SelectionExpression>),
     Or(Box<SelectionExpression>, Box<SelectionExpression>),
     Not(Box<SelectionExpression>),
+}
+
+#[derive(PartialEq, Debug)]
+pub enum ComparedValue {
+    Identifier(String),
+    Value(Value),
+    Composite(
+        NumericalOperatorType,
+        Box<ComparedValue>,
+        Box<ComparedValue>,
+    ),
 }
