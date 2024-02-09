@@ -38,7 +38,36 @@
   - Mult
   - Div
 
-## Grammar rules (sentences)
+## Grammar rules 
+(sentences)
+
+```plantuml
+title DML query
+start
+split
+:SelectStatement;
+split again
+:InsertStatement;
+split again
+:DeleteStatement;
+split again
+:UpdateStatement;
+end split
+:DMLQueryPrime;
+end
+```
+
+```plantuml
+title DML Query Prime
+start
+split
+split again
+:Semicolon;
+:DMLQuery;
+:DMLQueryPrime;
+end split
+end
+```
 
 ### Select statement
 
@@ -70,7 +99,6 @@ repeat
 :BooleanExpression;
 repeat while (Comma?)
 end split
-:Semicolon;
 stop
 @enduml
 ```
