@@ -76,6 +76,7 @@ end
 title Select statement
 start
 :Select;
+partition Selection {
 split
 :Mult;
 split again
@@ -88,16 +89,17 @@ split again
 end split
 repeat while (Comma?)
 end split
+}
 :From;
+partition SourceTables {
 repeat
 :Identifier;
 repeat while (Comma?)
+}
 split
 split again
 :Where;
-repeat
 :BooleanExpression;
-repeat while (Comma?)
 end split
 stop
 @enduml
