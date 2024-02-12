@@ -18,8 +18,6 @@ pub fn parse_select_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
 
         let boolean_expression = parse_boolean_expression(tokens)?;
 
-        tokens.consume_with_assert(QueryTokenType::Semicolon)?;
-
         if let Some(projected_attributes) = projection {
             return Ok(RelAlgAST::Projection(
                 Box::new(RelAlgAST::Selection(
@@ -35,8 +33,6 @@ pub fn parse_select_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
             ));
         }
     } else {
-        tokens.consume_with_assert(QueryTokenType::Semicolon)?;
-
         if let Some(projected_attributes) = projection {
             return Ok(RelAlgAST::Projection(
                 Box::new(source_relations),

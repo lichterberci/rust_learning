@@ -101,7 +101,7 @@ split again
 :Where;
 :BooleanExpression;
 end split
-stop
+end
 @enduml
 ```
 
@@ -252,6 +252,76 @@ split again
 :NumericalOperator;
 :ComparedValue;
 :ComparedValuePrime;
+end split
+end
+```
+
+### Insert statement
+
+```plantuml
+title Insert statement
+start
+:Insert;
+:Into;
+:Identifier;
+:OpeningParenthesis;
+repeat
+:Identifier;
+repeat while (Comma?)
+:ClosingParenthesis;
+:Values;
+:OpeningParenthesis;
+repeat
+:InsertionValue;
+repeat while (Comma?)
+:ClosingParenthesis;
+end
+```
+
+#### Insertion value
+
+```plantuml
+title Insertion value
+start
+split
+:Value;
+split again
+:NumericalExpression;
+end split
+end
+```
+
+#### Numerical expression
+
+```plantuml
+title Numerical expression
+start
+split
+:Value;
+split again
+:OpeningParenthesis;
+:NumericalExpression;
+:ClosingParenthesis;
+split again
+:Identifier;
+split
+split again
+:Dot;
+:Identifier;
+end split
+end split
+:NumericalExpressionPrime;
+end
+```
+
+```plantuml
+title Numerical expression prime
+start
+split
+split again
+:NumericalOperator;
+:NumericalExpression;
+:NumericalExpressionPrime;
 end split
 end
 ```

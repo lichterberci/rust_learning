@@ -3,6 +3,7 @@ use crate::query_tokenizer::{ComparisonOperatorType, NumericalOperatorType, Quer
 #[derive(Debug, PartialEq)]
 pub enum RelAlgAST {
     Relation(String),
+    Tuple(Vec<Value>),
     Union(Box<RelAlgAST>, Box<RelAlgAST>),
     Difference(Box<RelAlgAST>, Box<RelAlgAST>),
     CartesianProduct(Box<RelAlgAST>, Box<RelAlgAST>),

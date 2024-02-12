@@ -1,5 +1,6 @@
 mod boolean_expression;
 mod compared_value;
+mod insert_statement;
 mod select_statement;
 mod token_supplier;
 
