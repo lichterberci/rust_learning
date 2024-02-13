@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::{
     query_tokenizer::{NumericalOperatorType, QueryToken, QueryTokenType},
-    rel_alg_ast::RelAlgAST,
+    rel_alg_ast::{Identifier, RelAlgAST},
 };
 
 use super::{parse_boolean_expression, TokenSupplier};
@@ -44,7 +44,7 @@ pub fn parse_select_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
     }
 }
 
-fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<String>>, Box<dyn Error>> {
+fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<Identifier>>, Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::NumericalOperator(NumericalOperatorType::Mult) {
         tokens.consume()?; // *
 
@@ -63,7 +63,13 @@ fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<String>>, B
             return Err("Identifier expected after comma when selecting columns!".into());
         };
 
-        Ok(Some(vec![vec![identifier], rest_of_selection].concat()))
+        Ok(Some(
+            vec![
+                vec![Identifier::AttributeName(identifier)],
+                rest_of_selection,
+            ]
+            .concat(),
+        ))
     } else if tokens.get()?.get_type() == QueryTokenType::Dot {
         tokens.consume()?; // .
 
@@ -72,8 +78,6 @@ fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<String>>, B
             _ => return Err("Identifier expected!".into()),
         };
 
-        let identifier = String::from(format!("{identifier}.{second_identifier}"));
-
         if tokens.get()?.get_type() == QueryTokenType::Comma {
             tokens.consume()?; // ,
 
@@ -81,12 +85,21 @@ fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<String>>, B
                 return Err("Identifier expected after comma when selecting columns!".into());
             };
 
-            Ok(Some(vec![vec![identifier], rest_of_selection].concat()))
+            Ok(Some(
+                vec![
+                    vec![Identifier::QualifiedAttributeName(
+                        identifier,
+                        second_identifier,
+                    )],
+                    rest_of_selection,
+                ]
+                .concat(),
+            ))
         } else {
-            Ok(Some(vec![identifier]))
+            Ok(Some(vec![Identifier::AttributeName(identifier)]))
         }
     } else {
-        Ok(Some(vec![identifier]))
+        Ok(Some(vec![Identifier::AttributeName(identifier)]))
     }
 }
 
@@ -102,10 +115,10 @@ fn parse_source_tables(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn 
         let rest_of_selection = parse_source_tables(tokens)?;
 
         Ok(RelAlgAST::CartesianProduct(
-            Box::new(RelAlgAST::Relation(identifier)),
+            Box::new(RelAlgAST::Relation(Identifier::RelationName(identifier))),
             Box::new(rest_of_selection),
         ))
     } else {
-        Ok(RelAlgAST::Relation(identifier))
+        Ok(RelAlgAST::Relation(Identifier::RelationName(identifier)))
     }
 }

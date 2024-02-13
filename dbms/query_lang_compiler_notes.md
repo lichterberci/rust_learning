@@ -286,42 +286,85 @@ start
 split
 :Value;
 split again
-:NumericalExpression;
+:ConstantCalculatedExpression;
 end split
 end
 ```
 
-#### Numerical expression
+#### Constant calculated expression
 
 ```plantuml
-title Numerical expression
+title Constant calculated expression
 start
 split
 :Value;
 split again
+:Not;
+:ConstantCalculatedExpression;
+split again
 :OpeningParenthesis;
-:NumericalExpression;
+:ConstantCalculatedExpression;
 :ClosingParenthesis;
-split again
-:Identifier;
-split
-split again
-:Dot;
-:Identifier;
 end split
-end split
-:NumericalExpressionPrime;
+:ConstantCalculatedExpressionPrime;
 end
 ```
 
 ```plantuml
-title Numerical expression prime
+title Constant calculated expression prime
 start
 split
 split again
+split
 :NumericalOperator;
-:NumericalExpression;
-:NumericalExpressionPrime;
+split again
+:ComparisonOperator;
+split again
+:And;
+split again
+:Or;
+end split
+:ConstantCalculatedExpression;
+:ConstantCalculatedExpressionPrime;
+end split
+end
+```
+
+#### Calculated expression
+
+```plantuml
+title Calculated expression
+start
+split
+:Value;
+split again
+:Not;
+:CalculatedExpression;
+split again
+:OpeningParenthesis;
+:CalculatedExpression;
+:ClosingParenthesis;
+end split
+:CalculatedExpressionPrime;
+end
+```
+
+```plantuml
+title Calculated expression prime
+start
+split
+split again
+split
+:NumericalOperator;
+split again
+:ComparisonOperator;
+split again
+:And;
+split again
+:Or;
+end split
+:CalculatedExpression;
+:CalculatedExpressionPrime;
 end split
 end
 ```

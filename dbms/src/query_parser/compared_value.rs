@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::{
     query_tokenizer::{NumericalOperatorType, ParenthesisType, QueryToken, QueryTokenType},
-    rel_alg_ast::ComparedValue,
+    rel_alg_ast::{ComparedValue, Identifier},
 };
 
 use super::token_supplier::TokenSupplier;
@@ -17,7 +17,9 @@ pub fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<ComparedValue,
         };
 
         if tokens.get()?.get_type() != QueryTokenType::Dot {
-            return Ok(ComparedValue::Identifier(first_id_string));
+            return Ok(ComparedValue::Identifier(Identifier::AttributeName(
+                first_id_string,
+            )));
         }
 
         tokens.consume()?; // dot
@@ -29,9 +31,10 @@ pub fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<ComparedValue,
             _ => panic!("Error during parsing! Expected an identifier!"),
         };
 
-        let left_subtree = ComparedValue::Identifier(String::from(format!(
-            "{first_id_string}.{second_id_string}"
-        )));
+        let left_subtree = ComparedValue::Identifier(Identifier::QualifiedAttributeName(
+            first_id_string,
+            second_id_string,
+        ));
 
         let subtree = combine_compared_value_expression_with_prime(tokens, left_subtree)?;
 
