@@ -13,17 +13,20 @@ use super::TokenSupplier;
 pub fn parse_insert_statement(
     tokens: &mut TokenSupplier,
 ) -> Result<Option<RelAlgAST>, Box<dyn Error>> {
+    todo!()
 }
 
 pub fn parse_numerical_expression(
     tokens: &mut TokenSupplier,
 ) -> Result<Option<RelAlgAST>, Box<dyn Error>> {
-    if (tokens.get()?.get_type() == QueryTokenType::Parenthesis(Opening)) {
-        tokens.consume()?; // (
-        let result = parse_numerical_expression(tokens)?;
-        tokens.consume_with_assert(QueryTokenType::Parenthesis(Closing))?;
-        Ok(result)
-    } else if (tokens.get()?.get_type() == QueryTokenType::Value(())) {
-        let value = tokens.consume()?; // value
-    }
+    // if (tokens.get()?.get_type() == QueryTokenType::Parenthesis(Opening)) {
+    //     tokens.consume()?; // (
+    //     let result = parse_numerical_expression(tokens)?;
+    //     tokens.consume_with_assert(QueryTokenType::Parenthesis(Closing))?;
+    //     Ok(result)
+    // } else if (tokens.get()?.get_type() == QueryTokenType::Value(())) {
+    //     let value = tokens.consume()?; // value
+    //     todo!()
+    // }
+    todo!()
 }

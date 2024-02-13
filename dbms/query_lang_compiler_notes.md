@@ -236,6 +236,9 @@ end split
 split again
 :Value;
 split again
+:Sub;
+:ComparedValue;
+split again
 :OpeningParenthesis;
 :ComparedValue;
 :ClosingParenthesis;
@@ -272,22 +275,9 @@ repeat while (Comma?)
 :Values;
 :OpeningParenthesis;
 repeat
-:InsertionValue;
+:ConstantCalculatedExpression;
 repeat while (Comma?)
 :ClosingParenthesis;
-end
-```
-
-#### Insertion value
-
-```plantuml
-title Insertion value
-start
-split
-:Value;
-split again
-:ConstantCalculatedExpression;
-end split
 end
 ```
 
@@ -300,6 +290,9 @@ split
 :Value;
 split again
 :Not;
+:ConstantCalculatedExpression;
+split again
+:Sub;
 :ConstantCalculatedExpression;
 split again
 :OpeningParenthesis;
@@ -337,6 +330,9 @@ title Calculated expression
 start
 split
 :Value;
+split again
+:Sub;
+:CalculatedExpression;
 split again
 :Not;
 :CalculatedExpression;

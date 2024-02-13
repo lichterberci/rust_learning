@@ -221,7 +221,7 @@ impl QueryTokenizer {
             Option::Some(QueryTokenType::Value(ValueType::String)),
         ));
         grammar.push((
-            r"^(?<token>\d+\.\d*)[^\d]".into(),
+            r"^(?<token>(\-)?\d+\.\d*)[^\d]".into(),
             Option::Some(QueryTokenType::Value(ValueType::Float)),
         ));
         grammar.push((
