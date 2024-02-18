@@ -6,9 +6,8 @@ use crate::{
         QueryToken, QueryTokenType, Value,
     },
     rel_alg_ast::{CalculatedValue, Identifier},
+    token_supplier::TokenSupplier,
 };
-
-use super::TokenSupplier;
 
 #[derive(PartialEq, Debug)]
 enum CalculatedValueJoin {
@@ -19,7 +18,7 @@ enum CalculatedValueJoin {
 }
 
 pub fn parse_calculated_value(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<CalculatedValue, Box<dyn Error>> {
     if let QueryToken::Value(_) = tokens.get()? {
         let token = tokens.consume()?;
@@ -102,7 +101,7 @@ pub fn parse_calculated_value(
 }
 
 fn parse_calculated_value_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<Option<(CalculatedValueJoin, CalculatedValue)>, Box<dyn Error>> {
     if let Some(token) = tokens.peek().map(|x| x.get_type()) {
         if let QueryTokenType::NumericalOperator(operator_type) = token {
@@ -152,7 +151,7 @@ fn parse_calculated_value_prime(
 }
 
 fn combine_calculated_value_expression_with_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
     left_subtree: CalculatedValue,
 ) -> Result<CalculatedValue, Box<dyn Error>> {
     let prime_expr = parse_calculated_value_prime(tokens)?;

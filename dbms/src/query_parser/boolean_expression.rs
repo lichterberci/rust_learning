@@ -3,12 +3,13 @@ use std::error::Error;
 use crate::{
     query_tokenizer::{LogicalOperatorType, ParenthesisType, QueryToken, QueryTokenType},
     rel_alg_ast::SelectionExpression,
+    token_supplier::TokenSupplier,
 };
 
-use super::{compared_value::parse_compared_value, token_supplier::TokenSupplier};
+use super::compared_value::parse_compared_value;
 
 pub fn parse_boolean_expression(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<SelectionExpression, Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::Parenthesis(ParenthesisType::Opening) {
         tokens.consume()?;
@@ -61,7 +62,7 @@ pub fn parse_boolean_expression(
 }
 
 fn parse_boolean_expression_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<Option<(LogicalOperatorType, SelectionExpression)>, Box<dyn Error>> {
     if let Some(token) = tokens.peek().map(|x| x.get_type()) {
         if QueryTokenType::LogicalOperator(LogicalOperatorType::And) == token
@@ -92,7 +93,7 @@ fn parse_boolean_expression_prime(
 }
 
 fn combine_boolean_expression_with_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
     left_subtree: SelectionExpression,
 ) -> Result<SelectionExpression, Box<dyn Error>> {
     let expr_prime_result = parse_boolean_expression_prime(tokens)?;

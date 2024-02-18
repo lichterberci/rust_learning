@@ -1,5 +1,3 @@
-use dbms::{schema_parser::TokenSupplier, schema_tokenizer};
-
 fn main() {
     let tokenizer = dbms::schema_tokenizer::SchemaTokenizer::new();
 

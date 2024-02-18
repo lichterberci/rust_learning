@@ -3,11 +3,12 @@ use std::error::Error;
 use crate::{
     query_tokenizer::{NumericalOperatorType, ParenthesisType, QueryToken, QueryTokenType},
     rel_alg_ast::{ComparedValue, Identifier},
+    token_supplier::TokenSupplier,
 };
 
-use super::token_supplier::TokenSupplier;
-
-pub fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<ComparedValue, Box<dyn Error>> {
+pub fn parse_compared_value(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<ComparedValue, Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::Identifier {
         let first_identifier = tokens.consume()?;
 
@@ -82,7 +83,7 @@ pub fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<ComparedValue,
 }
 
 fn parse_compared_value_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<Option<(NumericalOperatorType, ComparedValue)>, Box<dyn Error>> {
     if let Some(token) = tokens.peek().map(|x| x.get_type()) {
         if let QueryTokenType::NumericalOperator(operator_type) = token {
@@ -102,7 +103,7 @@ fn parse_compared_value_prime(
 }
 
 fn combine_compared_value_expression_with_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
     left_subtree: ComparedValue,
 ) -> Result<ComparedValue, Box<dyn Error>> {
     let prime_expr = parse_compared_value_prime(tokens)?;

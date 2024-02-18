@@ -5,10 +5,9 @@ use crate::{
         ComparisonOperatorType, LogicalOperatorType, NumericalOperatorType, ParenthesisType,
         QueryToken, QueryTokenType, Value,
     },
-    rel_alg_ast::{CalculatedValue, ConstantCalculatedValue},
+    rel_alg_ast::ConstantCalculatedValue,
+    token_supplier::TokenSupplier,
 };
-
-use super::TokenSupplier;
 
 #[derive(PartialEq, Debug)]
 enum ConstantCalculatedValueJoin {
@@ -19,7 +18,7 @@ enum ConstantCalculatedValueJoin {
 }
 
 pub fn parse_constant_calculated_value(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<ConstantCalculatedValue, Box<dyn Error>> {
     if let QueryToken::Value(_) = tokens.get()? {
         let token = tokens.consume()?;
@@ -72,7 +71,7 @@ pub fn parse_constant_calculated_value(
 }
 
 fn parse_constant_calculated_value_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<Option<(ConstantCalculatedValueJoin, ConstantCalculatedValue)>, Box<dyn Error>> {
     if let Some(token) = tokens.peek().map(|x| x.get_type()) {
         if let QueryTokenType::NumericalOperator(operator_type) = token {
@@ -126,7 +125,7 @@ fn parse_constant_calculated_value_prime(
 }
 
 fn combine_constant_calculated_value_expression_with_prime(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
     left_subtree: ConstantCalculatedValue,
 ) -> Result<ConstantCalculatedValue, Box<dyn Error>> {
     let prime_expr = parse_constant_calculated_value_prime(tokens)?;

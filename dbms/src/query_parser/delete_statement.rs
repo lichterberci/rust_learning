@@ -3,11 +3,14 @@ use std::error::Error;
 use crate::{
     query_tokenizer::{QueryToken, QueryTokenType},
     rel_alg_ast::{Identifier, RelAlgAST},
+    token_supplier::TokenSupplier,
 };
 
-use super::{parse_boolean_expression, TokenSupplier};
+use super::parse_boolean_expression;
 
-pub fn parse_delete_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn Error>> {
+pub fn parse_delete_statement(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<RelAlgAST, Box<dyn Error>> {
     tokens.consume_with_assert(QueryTokenType::Delete)?;
     tokens.consume_with_assert(QueryTokenType::From)?;
 

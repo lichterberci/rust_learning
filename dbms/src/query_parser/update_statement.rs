@@ -6,11 +6,14 @@ use crate::{
         QueryToken, QueryTokenType,
     },
     rel_alg_ast::{CalculatedValue, Identifier, ProjectedColumns, RelAlgAST, TransformFunction},
+    token_supplier::TokenSupplier,
 };
 
-use super::{calculated_value::parse_calculated_value, parse_boolean_expression, TokenSupplier};
+use super::{calculated_value::parse_calculated_value, parse_boolean_expression};
 
-pub fn parse_update_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn Error>> {
+pub fn parse_update_statement(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<RelAlgAST, Box<dyn Error>> {
     tokens.consume_with_assert(QueryTokenType::Update)?;
 
     let relation_name = match tokens.consume_with_assert(QueryTokenType::Identifier)? {
@@ -70,7 +73,9 @@ pub fn parse_update_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
     ))
 }
 
-fn parse_attribute_names(tokens: &mut TokenSupplier) -> Result<Vec<Identifier>, Box<dyn Error>> {
+fn parse_attribute_names(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<Vec<Identifier>, Box<dyn Error>> {
     let identifier_token = match tokens.consume_with_assert(QueryTokenType::Identifier)? {
         QueryToken::Identifier(id) => Identifier::AttributeName(String::from(id)),
         _ => return Err("Expected an identifier!".into()),
@@ -88,7 +93,7 @@ fn parse_attribute_names(tokens: &mut TokenSupplier) -> Result<Vec<Identifier>, 
 }
 
 fn parse_attribute_values(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<Vec<CalculatedValue>, Box<dyn Error>> {
     let value_tree = parse_calculated_value(tokens)?;
 

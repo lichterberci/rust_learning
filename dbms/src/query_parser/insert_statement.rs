@@ -6,11 +6,14 @@ use crate::{
         QueryToken, QueryTokenType,
     },
     rel_alg_ast::{ConstantCalculatedValue, Identifier, RelAlgAST},
+    token_supplier::TokenSupplier,
 };
 
-use super::{constant_calculated_value::parse_constant_calculated_value, TokenSupplier};
+use super::constant_calculated_value::parse_constant_calculated_value;
 
-pub fn parse_insert_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn Error>> {
+pub fn parse_insert_statement(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<RelAlgAST, Box<dyn Error>> {
     tokens.consume_with_assert(QueryTokenType::Insert)?;
     tokens.consume_with_assert(QueryTokenType::Into)?;
 
@@ -29,7 +32,9 @@ pub fn parse_insert_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
     ))
 }
 
-fn parse_tuple(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn Error>> {
+fn parse_tuple(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<RelAlgAST, Box<dyn Error>> {
     tokens.consume_with_assert(QueryTokenType::Parenthesis(Opening))?;
 
     let attribute_names = parse_attribute_names(tokens)?;
@@ -56,7 +61,9 @@ fn parse_tuple(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn Error>> 
     ))
 }
 
-fn parse_attribute_names(tokens: &mut TokenSupplier) -> Result<Vec<Identifier>, Box<dyn Error>> {
+fn parse_attribute_names(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<Vec<Identifier>, Box<dyn Error>> {
     let identifier_token = match tokens.consume_with_assert(QueryTokenType::Identifier)? {
         QueryToken::Identifier(id) => Identifier::AttributeName(String::from(id)),
         _ => return Err("Expected an identifier!".into()),
@@ -74,7 +81,7 @@ fn parse_attribute_names(tokens: &mut TokenSupplier) -> Result<Vec<Identifier>, 
 }
 
 fn parse_attribute_values(
-    tokens: &mut TokenSupplier,
+    tokens: &mut TokenSupplier<QueryToken>,
 ) -> Result<Vec<ConstantCalculatedValue>, Box<dyn Error>> {
     let value_tree = parse_constant_calculated_value(tokens)?;
 

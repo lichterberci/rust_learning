@@ -3,11 +3,14 @@ use std::error::Error;
 use crate::{
     query_tokenizer::{NumericalOperatorType, QueryToken, QueryTokenType},
     rel_alg_ast::{Identifier, ProjectedColumns, RelAlgAST, TransformFunction},
+    token_supplier::TokenSupplier,
 };
 
-use super::{parse_boolean_expression, TokenSupplier};
+use super::parse_boolean_expression;
 
-pub fn parse_select_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn Error>> {
+pub fn parse_select_statement(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<RelAlgAST, Box<dyn Error>> {
     tokens.consume()?;
     let projection = parse_projection(tokens)?;
     tokens.consume_with_assert(QueryTokenType::From)?;
@@ -46,7 +49,9 @@ pub fn parse_select_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
     }
 }
 
-fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<Identifier>>, Box<dyn Error>> {
+fn parse_projection(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<Option<Vec<Identifier>>, Box<dyn Error>> {
     if tokens.get()?.get_type() == QueryTokenType::NumericalOperator(NumericalOperatorType::Mult) {
         tokens.consume()?; // *
 
@@ -108,7 +113,9 @@ fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<Identifier>
     }
 }
 
-fn parse_source_tables(tokens: &mut TokenSupplier) -> Result<RelAlgAST, Box<dyn Error>> {
+fn parse_source_tables(
+    tokens: &mut TokenSupplier<QueryToken>,
+) -> Result<RelAlgAST, Box<dyn Error>> {
     let identifier = match tokens.consume_with_assert(QueryTokenType::Identifier)? {
         QueryToken::Identifier(identifier) => String::from(identifier),
         _ => return Err("Identifier expected!".into()),
