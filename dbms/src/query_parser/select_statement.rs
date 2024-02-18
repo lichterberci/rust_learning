@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::{
     query_tokenizer::{NumericalOperatorType, QueryToken, QueryTokenType},
-    rel_alg_ast::{Identifier, RelAlgAST},
+    rel_alg_ast::{Identifier, ProjectedColumns, RelAlgAST, TransformFunction},
 };
 
 use super::{parse_boolean_expression, TokenSupplier};
@@ -24,7 +24,8 @@ pub fn parse_select_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
                     Box::new(source_relations),
                     boolean_expression,
                 )),
-                projected_attributes,
+                ProjectedColumns::Some(projected_attributes),
+                TransformFunction::Identity,
             ));
         } else {
             return Ok(RelAlgAST::Selection(
@@ -36,7 +37,8 @@ pub fn parse_select_statement(tokens: &mut TokenSupplier) -> Result<RelAlgAST, B
         if let Some(projected_attributes) = projection {
             return Ok(RelAlgAST::Projection(
                 Box::new(source_relations),
-                projected_attributes,
+                ProjectedColumns::Some(projected_attributes),
+                TransformFunction::Identity,
             ));
         } else {
             return Ok(source_relations);

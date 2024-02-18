@@ -371,3 +371,26 @@ end split
 end split
 end
 ```
+
+### Update statement
+
+```plantuml
+title Update statement
+start
+:Update;
+:Identifier;
+:OpeningParenthesis;
+repeat
+:Identifier;
+repeat while (Comma?)
+:ClosingParenthesis;
+:Values;
+:OpeningParenthesis;
+repeat
+:CalculatedTuple;
+repeat while (Comma?)
+:ClosingParenthesis;
+:Where;
+:BooleanExpression;
+end
+```

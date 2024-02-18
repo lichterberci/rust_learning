@@ -14,6 +14,7 @@ pub enum QueryToken {
     Values,
     Where,
     Comma,
+    Update,
     Semicolon,
     Dot,
     Identifier(String),
@@ -38,6 +39,7 @@ pub enum QueryTokenType {
     From,
     Into,
     Values,
+    Update,
     Where,
     Comma,
     Semicolon,
@@ -61,6 +63,7 @@ impl From<&QueryToken> for QueryTokenType {
             QueryToken::Values => QueryTokenType::Values,
             QueryToken::Where => QueryTokenType::Where,
             QueryToken::Comma => QueryTokenType::Comma,
+            QueryToken::Update => QueryTokenType::Update,
             QueryToken::Semicolon => QueryTokenType::Semicolon,
             QueryToken::Dot => QueryTokenType::Dot,
             QueryToken::Identifier(_) => QueryTokenType::Identifier,
@@ -237,6 +240,10 @@ impl QueryTokenizer {
             Option::Some(QueryTokenType::Select),
         ));
         grammar.push((
+            r"^(?<token>update)[^\w]".into(),
+            Option::Some(QueryTokenType::Update),
+        ));
+        grammar.push((
             r"^(?<token>insert)[^\w]".into(),
             Option::Some(QueryTokenType::Insert),
         ));
@@ -291,6 +298,7 @@ impl QueryTokenizer {
                     QueryTokenType::Values => QueryToken::Values,
                     QueryTokenType::Where => QueryToken::Where,
                     QueryTokenType::Comma => QueryToken::Comma,
+                    QueryTokenType::Update => QueryToken::Update,
                     QueryTokenType::Semicolon => QueryToken::Semicolon,
                     QueryTokenType::Identifier => {
                         QueryToken::Identifier(captured_group_of_token.as_str().into())

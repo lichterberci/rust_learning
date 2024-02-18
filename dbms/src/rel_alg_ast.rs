@@ -4,15 +4,26 @@ use crate::query_tokenizer::{ComparisonOperatorType, NumericalOperatorType, Quer
 pub enum RelAlgAST {
     Relation(Identifier),
     ConstantTuple(Vec<(Identifier, ConstantCalculatedValue)>),
-    CalculatedTuple(Vec<(Identifier, CalculatedValue)>),
     Union(Box<RelAlgAST>, Box<RelAlgAST>),
     Difference(Box<RelAlgAST>, Box<RelAlgAST>),
     CartesianProduct(Box<RelAlgAST>, Box<RelAlgAST>),
     Selection(Box<RelAlgAST>, SelectionExpression),
-    Projection(Box<RelAlgAST>, Vec<Identifier>),
+    Projection(Box<RelAlgAST>, ProjectedColumns, TransformFunction),
+}
+
+#[derive(PartialEq, Debug)]
+pub enum ProjectedColumns {
+    All,
+    Some(Vec<Identifier>),
 }
 
 #[derive(Debug, PartialEq)]
+pub enum TransformFunction {
+    Identity,
+    General(Vec<(Identifier, CalculatedValue)>),
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum SelectionExpression {
     Comparison(
         Box<ComparedValue>,
@@ -24,7 +35,7 @@ pub enum SelectionExpression {
     Not(Box<SelectionExpression>),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum ComparedValue {
     Identifier(Identifier),
     Value(Value),
@@ -42,7 +53,7 @@ pub enum Identifier {
     QualifiedAttributeName(String, String),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum CalculatedValue {
     Value(Value),
     Identifier(Identifier),

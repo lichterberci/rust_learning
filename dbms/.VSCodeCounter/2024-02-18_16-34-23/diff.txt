@@ -1,0 +1,38 @@
+Date : 2024-02-18 16:34:23
+Directory : c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms
+Total : 9 files,  560 codes, 0 comments, 110 blanks, all 670 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Rust     |          8 |        426 |          0 |        100 |        526 |
+| Markdown |          1 |        134 |          0 |         10 |        144 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                   |          9 |        560 |          0 |        110 |        670 |
+| . (Files)                                                                                                           |          1 |        134 |          0 |         10 |        144 |
+| src                                                                                                                 |          8 |        426 |          0 |        100 |        526 |
+| src (Files)                                                                                                         |          3 |         18 |          0 |         -4 |         14 |
+| src\query_parser                                                                                                    |          5 |        408 |          0 |        104 |        512 |
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                            | language | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\query_lang_compiler_notes.md                  | Markdown |        134 |          0 |         10 |        144 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\main.rs                                   | Rust     |          1 |          0 |          1 |          2 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\query_parser.rs                           | Rust     |        -27 |          0 |         -8 |        -35 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\query_parser\calculated_value.rs          | Rust     |        145 |          0 |         41 |        186 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\query_parser\compared_value.rs            | Rust     |         16 |          0 |          3 |         19 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\query_parser\constant_calculated_value.rs | Rust     |        130 |          0 |         33 |        163 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\query_parser\insert_statement.rs          | Rust     |         67 |          0 |         24 |         91 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\query_parser\select_statement.rs          | Rust     |         50 |          0 |          3 |         53 |
+| c:\Users\licht\OneDrive\Dokumentumok\rust_learning\rust_learning\dbms\src\rel_alg_ast.rs                            | Rust     |         44 |          0 |          3 |         47 |
+| Total                                                                                                               |          |        560 |          0 |        110 |        670 |
++---------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

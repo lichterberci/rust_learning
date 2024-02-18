@@ -10,7 +10,7 @@ fn main() {
 
         ;--INSERT INTO table (col1, col2, col3) VALUES (3.14, "szia mia", false);-- this here is a comment so it should be ignoerd
 
-        INSERT INTO table2 (col2, col1) VALUES (-(12 * (true == (42 < 31.2))), "asd" + "ddsa")
+        ;--INSERT INTO table2 (col2, col1) VALUES (-(12 * (true == (42 < 31.2))), "asd" + "ddsa")
 
         ;--SELECT tab1.col1, tab2.col2, tab3.col3
         ;--FROM tab1, tab2, tab3
@@ -18,6 +18,10 @@ fn main() {
         ;--AND tab2.col222 == tab3.col222
         ;--AND tab1.col123 != false 
         ;--OR tab3.col321 < -18.0;
+
+        UPDATE table (col1, col2, col3) 
+        VALUES (table.col1, col2 * 3 - 1 * table.col3, table.col3) 
+        WHERE table.col3 > 13
 
         ;--asd.col / (13 + asd.col2) == 123 or (asd == true or not dsa.col2 > 12 - 3) and sda != false
         ;--asd == dsa.loc or 1 == 1 *2

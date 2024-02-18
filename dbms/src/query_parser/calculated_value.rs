@@ -41,9 +41,12 @@ pub fn parse_calculated_value(
         };
 
         if tokens.get()?.get_type() != QueryTokenType::Dot {
-            return Ok(CalculatedValue::Identifier(Identifier::AttributeName(
-                first_id_string,
-            )));
+            let left_subtree =
+                CalculatedValue::Identifier(Identifier::AttributeName(first_id_string));
+
+            let subtree = combine_calculated_value_expression_with_prime(tokens, left_subtree)?;
+
+            return Ok(subtree);
         }
 
         tokens.consume()?; // dot
