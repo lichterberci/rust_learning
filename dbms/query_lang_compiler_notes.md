@@ -1,6 +1,8 @@
-# Query language compiler notes
+# DBMS DDL and DML notes
 
-## Grammar primitives
+## Query language compiler notes
+
+### Grammar primitives
 
 - Select
 - Insert
@@ -38,7 +40,8 @@
   - Mult
   - Div
 
-## Grammar rules 
+### Grammar rules
+
 (sentences)
 
 ```plantuml
@@ -405,5 +408,114 @@ start
 :Identifier;
 :Where;
 :BooleanExpression;
+end
+```
+
+## Schema description language
+
+Example:
+
+```sql
+TABLE_NAME {
+  int col1 {
+    key: primary | secondary | none,
+    index: ordered | single level | multi level /*aka tree*/ | hash
+  },
+  string col2,
+  bool col3,
+  int col4
+}
+
+TABLE_2 {
+  int col1,
+  float col2
+}
+```
+
+### Primitives
+
+- Identifier
+- Int
+- Bool
+- String
+- Float
+- Key
+- OpeningCurlyBrace
+- ClosingCurlyBrace
+- Primary
+- Secondary
+- None
+- Index
+- Colon
+- Ordered
+- Single
+- Level
+- Multi
+- Hash
+- Comma
+
+### DDL parsing
+
+```plantuml
+title Schema description
+start
+repeat
+:Identifier;
+:OpeningCurlyBrace;
+repeat
+split
+:Int;
+split again
+:Float;
+split again
+:Bool;
+split again
+:String;
+end split
+:Identifier;
+split
+split again
+:OpeningCurlyBrace;
+repeat
+:ColumnAttribute;
+repeat while (Comma?)
+:ClosingCurlyBrace;
+end split
+repeat while (Comma?)
+:ClosingCurlyBrace;
+repeat while (Token?)
+end
+```
+
+#### Column attributes
+
+```plantuml
+title Column attribute
+start
+split
+:Key;
+:Colon;
+split
+:None;
+split again
+:Primary;
+split again
+:Secondary;
+end split
+split again
+:Index;
+:Colon;
+split
+:Ordered;
+split again
+:Single;
+:Level;
+split again
+:Multi;
+:Level;
+split again
+:Hash;
+end split
+end split
 end
 ```
