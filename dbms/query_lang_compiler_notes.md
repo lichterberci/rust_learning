@@ -394,3 +394,16 @@ repeat while (Comma?)
 :BooleanExpression;
 end
 ```
+
+### Delete statement
+
+```plantuml
+title Delete statement
+start
+:Delete;
+:From;
+:Identifier;
+:Where;
+:BooleanExpression;
+end
+```

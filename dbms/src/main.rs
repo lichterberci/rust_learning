@@ -19,9 +19,12 @@ fn main() {
         ;--AND tab1.col123 != false 
         ;--OR tab3.col321 < -18.0;
 
-        UPDATE table (col1, col2, col3) 
-        VALUES (table.col1, col2 * 3 - 1 * table.col3, table.col3) 
-        WHERE table.col3 > 13
+        ;--UPDATE table (col1, col2, col3) 
+        ;--VALUES (table.col1, col2 * 3 - 1 * table.col3, table.col3) 
+        ;--WHERE table.col3 > 13
+
+        DELETE FROM table
+        WHERE table.col1 == 1 AND table.col2 > 14
 
         ;--asd.col / (13 + asd.col2) == 123 or (asd == true or not dsa.col2 > 12 - 3) and sda != false
         ;--asd == dsa.loc or 1 == 1 *2
