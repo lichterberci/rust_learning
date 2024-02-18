@@ -329,6 +329,13 @@ end
 title Calculated expression
 start
 split
+:Identifier;
+split
+split again
+:Dot;
+:Identifier;
+end split
+split again
 :Value;
 split again
 :Sub;

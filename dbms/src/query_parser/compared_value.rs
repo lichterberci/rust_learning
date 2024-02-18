@@ -50,6 +50,22 @@ pub fn parse_compared_value(tokens: &mut TokenSupplier) -> Result<ComparedValue,
         let subtree = combine_compared_value_expression_with_prime(tokens, left_subtree)?;
 
         return Ok(subtree);
+    } else if tokens.get()?.get_type()
+        == QueryTokenType::NumericalOperator(NumericalOperatorType::Sub)
+    {
+        tokens.consume()?; // -
+
+        let left_subtree = parse_compared_value(tokens)?;
+
+        let subtree = combine_compared_value_expression_with_prime(tokens, left_subtree)?;
+
+        Ok(ComparedValue::Composite(
+            NumericalOperatorType::Mult,
+            Box::new(ComparedValue::Value(
+                crate::query_tokenizer::Value::Integer(-1),
+            )),
+            Box::new(subtree),
+        ))
     } else if tokens.get()?.get_type() == QueryTokenType::Parenthesis(ParenthesisType::Opening) {
         tokens.consume()?; // '('
 
