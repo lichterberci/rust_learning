@@ -5,7 +5,7 @@ use crate::{
         ComparisonOperatorType, LogicalOperatorType, NumericalOperatorType, ParenthesisType,
         QueryToken, QueryTokenType, Value,
     },
-    rel_alg_ast::CalculatedValue,
+    rel_alg_ast::{CalculatedValue, ConstantCalculatedValue},
 };
 
 use super::TokenSupplier;
@@ -20,11 +20,11 @@ enum ConstantCalculatedValueJoin {
 
 pub fn parse_constant_calculated_value(
     tokens: &mut TokenSupplier,
-) -> Result<CalculatedValue, Box<dyn Error>> {
+) -> Result<ConstantCalculatedValue, Box<dyn Error>> {
     if let QueryToken::Value(_) = tokens.get()? {
         let token = tokens.consume()?;
 
-        let left_subtree = CalculatedValue::Value(match token {
+        let left_subtree = ConstantCalculatedValue::Value(match token {
             QueryToken::Value(value) => value.clone(),
             _ => panic!("Error during parsing! Expected a value here!"),
         });
@@ -41,9 +41,9 @@ pub fn parse_constant_calculated_value(
         let subtree =
             combine_constant_calculated_value_expression_with_prime(tokens, left_subtree)?;
 
-        return Ok(CalculatedValue::NumericalOperation(
+        return Ok(ConstantCalculatedValue::NumericalOperation(
             NumericalOperatorType::Mult,
-            Box::new(CalculatedValue::Value(Value::Integer(-1))),
+            Box::new(ConstantCalculatedValue::Value(Value::Integer(-1))),
             Box::new(subtree),
         ));
     } else if let QueryToken::LogicalOperator(LogicalOperatorType::Not) = tokens.get()? {
@@ -54,7 +54,7 @@ pub fn parse_constant_calculated_value(
         let subtree =
             combine_constant_calculated_value_expression_with_prime(tokens, left_subtree)?;
 
-        return Ok(CalculatedValue::Not(Box::new(subtree)));
+        return Ok(ConstantCalculatedValue::Not(Box::new(subtree)));
     } else if let QueryToken::Parenthesis(ParenthesisType::Opening) = tokens.get()? {
         tokens.consume()?;
 
@@ -73,7 +73,7 @@ pub fn parse_constant_calculated_value(
 
 fn parse_constant_calculated_value_prime(
     tokens: &mut TokenSupplier,
-) -> Result<Option<(ConstantCalculatedValueJoin, CalculatedValue)>, Box<dyn Error>> {
+) -> Result<Option<(ConstantCalculatedValueJoin, ConstantCalculatedValue)>, Box<dyn Error>> {
     if let Some(token) = tokens.peek().map(|x| x.get_type()) {
         if let QueryTokenType::NumericalOperator(operator_type) = token {
             tokens.consume()?; // + | - | * | /
@@ -127,29 +127,29 @@ fn parse_constant_calculated_value_prime(
 
 fn combine_constant_calculated_value_expression_with_prime(
     tokens: &mut TokenSupplier,
-    left_subtree: CalculatedValue,
-) -> Result<CalculatedValue, Box<dyn Error>> {
+    left_subtree: ConstantCalculatedValue,
+) -> Result<ConstantCalculatedValue, Box<dyn Error>> {
     let prime_expr = parse_constant_calculated_value_prime(tokens)?;
 
     if let Some((join_type, right_subtree)) = prime_expr {
         match join_type {
-            ConstantCalculatedValueJoin::And => Ok(CalculatedValue::And(
+            ConstantCalculatedValueJoin::And => Ok(ConstantCalculatedValue::And(
                 Box::new(left_subtree),
                 Box::new(right_subtree),
             )),
-            ConstantCalculatedValueJoin::Or => Ok(CalculatedValue::Or(
+            ConstantCalculatedValueJoin::Or => Ok(ConstantCalculatedValue::Or(
                 Box::new(left_subtree),
                 Box::new(right_subtree),
             )),
             ConstantCalculatedValueJoin::NumericalOperator(operator_type) => {
-                Ok(CalculatedValue::NumericalOperation(
+                Ok(ConstantCalculatedValue::NumericalOperation(
                     operator_type,
                     Box::new(left_subtree),
                     Box::new(right_subtree),
                 ))
             }
             ConstantCalculatedValueJoin::ComparisonOperator(operator_type) => {
-                Ok(CalculatedValue::Comparison(
+                Ok(ConstantCalculatedValue::Comparison(
                     operator_type,
                     Box::new(left_subtree),
                     Box::new(right_subtree),

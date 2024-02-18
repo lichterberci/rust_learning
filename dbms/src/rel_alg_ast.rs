@@ -3,8 +3,8 @@ use crate::query_tokenizer::{ComparisonOperatorType, NumericalOperatorType, Quer
 #[derive(Debug, PartialEq)]
 pub enum RelAlgAST {
     Relation(Identifier),
-    ConstantTuple(Vec<ConstantCalculatedValue>),
-    CalculatedTuple(Vec<CalculatedValue>),
+    ConstantTuple(Vec<(Identifier, ConstantCalculatedValue)>),
+    CalculatedTuple(Vec<(Identifier, CalculatedValue)>),
     Union(Box<RelAlgAST>, Box<RelAlgAST>),
     Difference(Box<RelAlgAST>, Box<RelAlgAST>),
     CartesianProduct(Box<RelAlgAST>, Box<RelAlgAST>),
@@ -61,7 +61,7 @@ pub enum CalculatedValue {
     Or(Box<CalculatedValue>, Box<CalculatedValue>),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum ConstantCalculatedValue {
     Value(Value),
     Not(Box<ConstantCalculatedValue>),

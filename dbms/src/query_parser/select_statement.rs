@@ -96,7 +96,10 @@ fn parse_projection(tokens: &mut TokenSupplier) -> Result<Option<Vec<Identifier>
                 .concat(),
             ))
         } else {
-            Ok(Some(vec![Identifier::AttributeName(identifier)]))
+            Ok(Some(vec![Identifier::QualifiedAttributeName(
+                identifier,
+                second_identifier,
+            )]))
         }
     } else {
         Ok(Some(vec![Identifier::AttributeName(identifier)]))
